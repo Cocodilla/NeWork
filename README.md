@@ -1,5 +1,8 @@
 # NeWork
 
+[![Android CI](https://github.com/Cocodilla/NeWork/actions/workflows/android-ci.yml/badge.svg?branch=main)](https://github.com/Cocodilla/NeWork/actions/workflows/android-ci.yml)
+[![Release APK](https://github.com/Cocodilla/NeWork/actions/workflows/release-apk.yml/badge.svg)](https://github.com/Cocodilla/NeWork/actions/workflows/release-apk.yml)
+
 Android-приложение социальной сети, выполненное в рамках дипломного проекта. Приложение написано на Kotlin c использованием Jetpack Compose, Kotlin Coroutines, Retrofit и Dagger Hilt.
 
 ## Что реализовано
@@ -64,6 +67,14 @@ MAPS_API_KEY=your_google_maps_key
 - на `push` в `main` и на `pull_request` запускает `lintDebug` и `assembleDebug`;
 - прикладывает debug APK как artifact;
 - по ручному запуску `workflow_dispatch` поднимает Android-эмулятор, устанавливает APK и запускает приложение.
+
+Также добавлен workflow `.github/workflows/release-apk.yml`.
+
+Что он делает:
+
+- по ручному запуску и по тегам вида `v*` собирает release APK;
+- прикладывает release APK как artifact;
+- при запуске по тегу публикует APK в GitHub Releases.
 
 Для полноценной работы workflow стоит добавить в GitHub Secrets:
 
