@@ -55,6 +55,21 @@ MAPS_API_KEY=your_google_maps_key
 ./gradlew clean :app:lintDebug
 ```
 
+## GitHub Actions
+
+В репозитории добавлен workflow `.github/workflows/android-ci.yml`.
+
+Что он делает:
+
+- на `push` в `main` и на `pull_request` запускает `lintDebug` и `assembleDebug`;
+- прикладывает debug APK как artifact;
+- по ручному запуску `workflow_dispatch` поднимает Android-эмулятор, устанавливает APK и запускает приложение.
+
+Для полноценной работы workflow стоит добавить в GitHub Secrets:
+
+- `API_KEY`
+- `MAPS_API_KEY`
+
 ## Скриншоты
 
 ### Профиль и работы
