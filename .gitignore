@@ -1,0 +1,14 @@
+*.iml
+.gradle
+/.kotlin
+/local.properties
+/.idea
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+API_KEY.properties
+keystore.properties
+MERGE_NOTE.txt
