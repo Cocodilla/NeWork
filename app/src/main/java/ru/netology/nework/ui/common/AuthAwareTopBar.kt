@@ -13,7 +13,9 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import ru.netology.nework.R
 import ru.netology.nework.navigation.Destination
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +28,11 @@ fun AuthAwareTopBar(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = MaterialTheme.colorScheme.primary,
 ) {
+    val profileDescription = stringResource(R.string.cd_profile)
+    val logoutDescription = stringResource(R.string.cd_logout)
+    val loginLabel = stringResource(R.string.action_login)
+    val registerLabel = stringResource(R.string.action_register)
+
     TopAppBar(
         title = {
             Text(text = title)
@@ -41,7 +48,7 @@ fun AuthAwareTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Profile",
+                        contentDescription = profileDescription,
                     )
                 }
 
@@ -50,7 +57,7 @@ fun AuthAwareTopBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                        contentDescription = "Logout",
+                        contentDescription = logoutDescription,
                     )
                 }
             } else {
@@ -61,7 +68,7 @@ fun AuthAwareTopBar(
                         }
                     }
                 ) {
-                    Text("Вход", color = contentColor)
+                    Text(loginLabel, color = contentColor)
                 }
 
                 TextButton(
@@ -71,7 +78,7 @@ fun AuthAwareTopBar(
                         }
                     }
                 ) {
-                    Text("Регистрация", color = contentColor)
+                    Text(registerLabel, color = contentColor)
                 }
             }
         },

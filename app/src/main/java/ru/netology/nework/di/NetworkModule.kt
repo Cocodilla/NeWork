@@ -66,6 +66,7 @@ object NetworkModule {
         loggingInterceptor: HttpLoggingInterceptor,
     ): OkHttpClient =
         OkHttpClient.Builder()
+            .dns(AppDns.dns)
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .build()

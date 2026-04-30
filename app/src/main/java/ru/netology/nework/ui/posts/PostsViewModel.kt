@@ -32,6 +32,7 @@ class PostsViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     loading = false,
                     data = posts,
+                    error = null,
                 )
             }
         }
@@ -54,13 +55,25 @@ class PostsViewModel @Inject constructor(
 
     fun onLike(post: Post) {
         viewModelScope.launch {
-            repository.likeById(post.id)
+            runCatching {
+                repository.likeById(post.id)
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    error = error.message ?: "Не удалось обновить лайк поста",
+                )
+            }
         }
     }
 
     fun onDelete(postId: Long) {
         viewModelScope.launch {
-            repository.removeById(postId)
+            runCatching {
+                repository.removeById(postId)
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    error = error.message ?: "Не удалось удалить пост",
+                )
+            }
         }
     }
 

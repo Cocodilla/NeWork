@@ -3,8 +3,6 @@ package ru.netology.nework.ui.posts
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,7 +40,7 @@ class EditPostViewModel @Inject constructor(
     }
 
     fun changeContent(content: String) {
-        _state.update { it.copy(content = content) }
+        _state.update { it.copy(content = content, saveError = null) }
     }
 
     fun load(postId: Long) {
@@ -65,19 +63,19 @@ class EditPostViewModel @Inject constructor(
     }
 
     fun changeAttachment(attachment: AttachmentModel?) {
-        _state.update { it.copy(attachment = attachment) }
+        _state.update { it.copy(attachment = attachment, saveError = null) }
     }
 
     fun changeMentionIds(mentionIds: List<Long>) {
-        _state.update { it.copy(mentionIds = mentionIds) }
+        _state.update { it.copy(mentionIds = mentionIds, saveError = null) }
     }
 
     fun changeCoordinates(coordinates: Coordinates?) {
-        _state.update { it.copy(coordinates = coordinates) }
+        _state.update { it.copy(coordinates = coordinates, saveError = null) }
     }
 
     fun clearCoordinates() {
-        _state.update { it.copy(coordinates = null) }
+        _state.update { it.copy(coordinates = null, saveError = null) }
     }
 
     fun clearAttachment() {
@@ -86,6 +84,7 @@ class EditPostViewModel @Inject constructor(
                 attachment = null,
                 existingMediaUrl = null,
                 existingMediaType = PostMediaType.NONE,
+                saveError = null,
             )
         }
     }
@@ -96,7 +95,7 @@ class EditPostViewModel @Inject constructor(
         if (content.isEmpty() || currentState.saving) return@launch
         if (!appAuth.authState.first().authorized) return@launch
 
-        _state.update { it.copy(saving = true) }
+        _state.update { it.copy(saving = true, saveError = null) }
 
         runCatching {
             val uploadedAttachment = uploadAttachment(currentState.attachment)
@@ -113,10 +112,15 @@ class EditPostViewModel @Inject constructor(
             )
         }.onSuccess { savedPost ->
             originalPost = savedPost
-            _state.update { it.copy(id = savedPost.id, saving = false) }
+            _state.update { it.copy(id = savedPost.id, saving = false, saveError = null) }
             onSaved()
-        }.onFailure {
-            _state.update { it.copy(saving = false) }
+        }.onFailure { error ->
+            _state.update {
+                it.copy(
+                    saving = false,
+                    saveError = error.message ?: "Не удалось сохранить пост",
+                )
+            }
         }
     }
 
@@ -147,8 +151,9 @@ class EditPostViewModel @Inject constructor(
             authorAvatar = user?.avatar,
             authorJob = user?.job,
             content = content,
-            published = LocalDateTime.now().format(PUBLISH_DATE_FORMATTER),
+            published = "",
             likedByMe = false,
+            likeOwnerIds = emptyList(),
             likes = 0,
             link = null,
             ownedByMe = true,
@@ -171,9 +176,4 @@ class EditPostViewModel @Inject constructor(
     private fun AttachmentDto.toPostMediaType(): PostMediaType = runCatching {
         PostMediaType.valueOf(type.uppercase(Locale.ROOT))
     }.getOrDefault(PostMediaType.NONE)
-
-    private companion object {
-        val PUBLISH_DATE_FORMATTER: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.getDefault())
-    }
 }

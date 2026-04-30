@@ -22,10 +22,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import ru.netology.nework.R
 import ru.netology.nework.navigation.Destination
 import ru.netology.nework.ui.common.AppBottomBar
 import ru.netology.nework.ui.common.AuthAwareTopBar
@@ -47,21 +49,21 @@ fun EventsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var showAuthDialog by remember { mutableStateOf(false) }
+    var authDialogMessageRes by remember { mutableStateOf<Int?>(null) }
 
-    if (showAuthDialog) {
+    authDialogMessageRes?.let { messageRes ->
         AuthRequiredDialog(
-            title = "Нужен аккаунт",
-            message = "Чтобы создать событие, войди в аккаунт или зарегистрируйся.",
+            title = stringResource(R.string.auth_required_title),
+            message = stringResource(messageRes),
             onLogin = {
-                showAuthDialog = false
+                authDialogMessageRes = null
                 navController.navigate(Destination.Login.route)
             },
             onRegister = {
-                showAuthDialog = false
+                authDialogMessageRes = null
                 navController.navigate(Destination.Register.route)
             },
-            onDismiss = { showAuthDialog = false },
+            onDismiss = { authDialogMessageRes = null },
         )
     }
 
@@ -72,7 +74,7 @@ fun EventsScreen(
                 navController = navController,
                 isAuthorized = authState.authorized,
                 onLogout = authViewModel::logout,
-                title = "События",
+                title = stringResource(R.string.screen_events),
                 containerColor = EventsScreenBg,
                 contentColor = EventsAccent,
             )
@@ -86,7 +88,7 @@ fun EventsScreen(
                     if (authState.authorized) {
                         navController.navigate(Destination.EventEditor.createRoute())
                     } else {
-                        showAuthDialog = true
+                        authDialogMessageRes = R.string.auth_required_event_message
                     }
                 },
                 containerColor = Color(0xFFE7D9F5),
@@ -95,7 +97,7 @@ fun EventsScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Добавить событие",
+                    contentDescription = stringResource(R.string.action_add_event),
                 )
             }
         },
@@ -125,14 +127,23 @@ fun EventsScreen(
                                     Destination.EventDetails.createRoute(event.id)
                                 )
                             },
-                            onLike = { viewModel.onLike(event) },
+                            onLike = {
+                                if (authState.authorized) {
+                                    viewModel.onLike(event)
+                                } else {
+                                    authDialogMessageRes = R.string.auth_required_event_like_message
+                                }
+                            },
                             onShare = {
                                 val intent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, "${event.author}\n\n${event.content}")
                                 }
                                 context.startActivity(
-                                    Intent.createChooser(intent, "Поделиться событием")
+                                    Intent.createChooser(
+                                        intent,
+                                        context.getString(R.string.action_share_event),
+                                    )
                                 )
                             },
                             onEdit = {

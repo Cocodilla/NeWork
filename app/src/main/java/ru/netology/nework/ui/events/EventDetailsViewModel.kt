@@ -58,9 +58,15 @@ class EventDetailsViewModel @Inject constructor(
     fun onLike() {
         val current = _state.value.event ?: return
         viewModelScope.launch {
-            val updated = repository.likeById(current.id) ?: return@launch
-            val users = usersRepository.getAll()
-            _state.value = buildUiState(updated, users)
+            runCatching {
+                val updated = repository.likeById(current.id) ?: return@runCatching null
+                val users = usersRepository.getAll()
+                buildUiState(updated, users)
+            }.onSuccess { uiState ->
+                uiState?.let { _state.value = it }
+            }.onFailure { error ->
+                _state.value = _state.value.copy(error = error.message ?: "Не удалось обновить лайк")
+            }
         }
     }
 
@@ -68,17 +74,28 @@ class EventDetailsViewModel @Inject constructor(
         val current = _state.value.event ?: return
         viewModelScope.launch {
             if (!appAuth.authState.first().authorized) return@launch
-            val updated = repository.participateById(current.id) ?: return@launch
-            val users = usersRepository.getAll()
-            _state.value = buildUiState(updated, users)
+            runCatching {
+                val updated = repository.participateById(current.id) ?: return@runCatching null
+                val users = usersRepository.getAll()
+                buildUiState(updated, users)
+            }.onSuccess { uiState ->
+                uiState?.let { _state.value = it }
+            }.onFailure { error ->
+                _state.value = _state.value.copy(error = error.message ?: "Не удалось обновить участие")
+            }
         }
     }
 
     fun onRemove(onRemoved: () -> Unit) {
         val current = _state.value.event ?: return
         viewModelScope.launch {
-            repository.removeById(current.id)
-            onRemoved()
+            runCatching {
+                repository.removeById(current.id)
+            }.onSuccess {
+                onRemoved()
+            }.onFailure { error ->
+                _state.value = _state.value.copy(error = error.message ?: "Не удалось удалить событие")
+            }
         }
     }
 
@@ -90,10 +107,9 @@ class EventDetailsViewModel @Inject constructor(
             )
         }
 
-        val pool = users.ifEmpty { listOf(event.toFallbackUser()) }
-        val speakers = pool.filter { user -> user.id in event.speakerIds }
-        val likers = pool.filter { user -> user.id in event.likeOwnerIds }
-        val participants = pool.filter { user -> user.id in event.participantsIds }
+        val speakers = users.filter { user -> user.id in event.speakerIds }
+        val likers = users.filter { user -> user.id in event.likeOwnerIds }
+        val participants = users.filter { user -> user.id in event.participantsIds }
 
         return EventDetailsUiState(
             loading = false,
@@ -104,13 +120,4 @@ class EventDetailsViewModel @Inject constructor(
             error = null,
         )
     }
-
-    private fun Event.toFallbackUser(): User = User(
-        id = authorId,
-        login = author.lowercase().replace(" ", ""),
-        name = author.ifBlank { "Speaker" },
-        avatar = authorAvatar,
-        job = authorJob,
-        about = null,
-    )
 }

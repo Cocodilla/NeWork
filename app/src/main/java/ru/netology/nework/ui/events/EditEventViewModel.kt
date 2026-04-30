@@ -3,8 +3,6 @@ package ru.netology.nework.ui.events
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +21,9 @@ import ru.netology.nework.model.Coordinates
 import ru.netology.nework.model.Event
 import ru.netology.nework.model.EventType
 import ru.netology.nework.model.PostMediaType
+import ru.netology.nework.util.defaultEventDateTimeValue
+import ru.netology.nework.util.toApiUtcDateTimeOrNull
+import ru.netology.nework.util.toDisplayDateTimeOrSelf
 
 @HiltViewModel
 class EditEventViewModel @Inject constructor(
@@ -34,7 +35,7 @@ class EditEventViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(
         EventEditorState(
-            datetime = defaultEventDateTime(),
+            datetime = defaultEventDateTimeValue(),
             type = EventType.ONLINE,
         )
     )
@@ -60,7 +61,7 @@ class EditEventViewModel @Inject constructor(
                 attachment = null,
                 existingMediaUrl = event.mediaUrl,
                 existingMediaType = event.mediaType,
-                datetime = event.datetime,
+                datetime = event.datetime.toDisplayDateTimeOrSelf(),
                 type = event.type,
                 speakerIds = event.speakerIds,
                 coordinates = event.coordinates,
@@ -127,13 +128,17 @@ class EditEventViewModel @Inject constructor(
         _state.update { it.copy(saving = true) }
 
         runCatching {
+            val apiDateTime = currentState.datetime
+                .ifBlank { defaultEventDateTimeValue() }
+                .toApiUtcDateTimeOrNull()
+                ?: error("Не удалось подготовить дату события")
             val uploadedAttachment = uploadAttachment(currentState.attachment)
             val baseEvent = originalEvent ?: buildNewEvent(content)
             eventsRepository.save(
                 baseEvent.copy(
                     id = currentState.id,
                     content = content,
-                    datetime = currentState.datetime.ifBlank { defaultEventDateTime() },
+                    datetime = apiDateTime,
                     type = currentState.type,
                     speakerIds = currentState.speakerIds,
                     mediaUrl = uploadedAttachment?.url ?: currentState.existingMediaUrl,
@@ -177,8 +182,8 @@ class EditEventViewModel @Inject constructor(
             authorAvatar = user?.avatar,
             authorJob = user?.job,
             content = content,
-            published = LocalDateTime.now().format(PUBLISH_DATE_FORMATTER),
-            datetime = _state.value.datetime.ifBlank { defaultEventDateTime() },
+            published = "",
+            datetime = "",
             type = _state.value.type,
             likedByMe = false,
             likeOwnerIds = emptyList(),
@@ -206,15 +211,4 @@ class EditEventViewModel @Inject constructor(
     private fun AttachmentDto.toPostMediaType(): PostMediaType = runCatching {
         PostMediaType.valueOf(type.uppercase(Locale.ROOT))
     }.getOrDefault(PostMediaType.NONE)
-
-    private companion object {
-        val PUBLISH_DATE_FORMATTER: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.getDefault())
-
-        val EVENT_DATE_TIME_FORMATTER: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-
-        fun defaultEventDateTime(): String =
-            LocalDateTime.now().plusDays(1).withSecond(0).withNano(0).format(EVENT_DATE_TIME_FORMATTER)
-    }
 }

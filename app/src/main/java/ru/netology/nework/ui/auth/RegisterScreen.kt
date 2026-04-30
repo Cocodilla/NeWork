@@ -52,6 +52,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -61,6 +62,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.flow.collectLatest
+import ru.netology.nework.R
 import ru.netology.nework.model.PhotoModel
 import ru.netology.nework.util.toTempFile
 
@@ -91,7 +93,7 @@ fun RegisterScreen(
         }
 
         val tempFile = runCatching { uri.toTempFile(context) }.getOrElse {
-            photoSelectionError = "Не удалось подготовить изображение"
+            photoSelectionError = context.getString(R.string.error_prepare_image)
             viewModel.changePhoto(PhotoModel())
             return@rememberLauncherForActivityResult
         }
@@ -112,14 +114,14 @@ fun RegisterScreen(
                 AuthEvent.UserAlreadyExists -> {
                     Toast.makeText(
                         context,
-                        "Пользователь с таким логином уже зарегистрирован",
+                        context.getString(R.string.toast_user_exists),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
                 AuthEvent.UnknownError -> {
                     Toast.makeText(
                         context,
-                        "Не удалось завершить регистрацию",
+                        context.getString(R.string.toast_register_failed),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -135,12 +137,12 @@ fun RegisterScreen(
             containerColor = AuthUi.ScreenBackground,
             topBar = {
                 TopAppBar(
-                    title = { Text("Регистрация") },
+                    title = { Text(stringResource(R.string.screen_register)) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Назад",
+                                contentDescription = stringResource(R.string.cd_back),
                             )
                         }
                     },
@@ -171,7 +173,7 @@ fun RegisterScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.CameraAlt,
-                            contentDescription = "Фото",
+                            contentDescription = stringResource(R.string.cd_photo),
                             modifier = Modifier.size(56.dp),
                             tint = Color.Black,
                         )
@@ -179,7 +181,7 @@ fun RegisterScreen(
                 } else {
                     Image(
                         painter = rememberAsyncImagePainter(state.photo.uri),
-                        contentDescription = "Выбранное фото",
+                        contentDescription = stringResource(R.string.cd_selected_photo),
                         modifier = Modifier
                             .size(124.dp)
                             .clip(CircleShape)
@@ -199,7 +201,7 @@ fun RegisterScreen(
                     shape = AuthUi.ButtonShape,
                     contentPadding = PaddingValues(horizontal = 22.dp, vertical = 8.dp),
                 ) {
-                    Text("Выбрать фото")
+                    Text(stringResource(R.string.action_pick_photo))
                 }
 
                 photoSelectionError?.let { error ->
@@ -215,14 +217,14 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = state.loginError != null,
-                    label = { Text("Логин") },
+                    label = { Text(stringResource(R.string.label_login)) },
                     colors = authTextFieldColors(),
                     shape = AuthUi.FieldShape,
                 )
 
                 state.loginError?.let { error ->
                     Spacer(modifier = Modifier.height(4.dp))
-                    AuthErrorText(error)
+                    AuthErrorText(stringResource(error))
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -233,14 +235,14 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = state.nameError != null,
-                    label = { Text("Имя") },
+                    label = { Text(stringResource(R.string.label_name)) },
                     colors = authTextFieldColors(),
                     shape = AuthUi.FieldShape,
                 )
 
                 state.nameError?.let { error ->
                     Spacer(modifier = Modifier.height(4.dp))
-                    AuthErrorText(error)
+                    AuthErrorText(stringResource(error))
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -251,7 +253,7 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = state.passwordError != null,
-                    label = { Text("Пароль") },
+                    label = { Text(stringResource(R.string.label_password)) },
                     visualTransformation = if (passwordVisible) {
                         VisualTransformation.None
                     } else {
@@ -267,9 +269,9 @@ fun RegisterScreen(
                                     Icons.Default.VisibilityOff
                                 },
                                 contentDescription = if (passwordVisible) {
-                                    "Скрыть пароль"
+                                    stringResource(R.string.cd_hide_password)
                                 } else {
-                                    "Показать пароль"
+                                    stringResource(R.string.cd_show_password)
                                 },
                             )
                         }
@@ -280,7 +282,7 @@ fun RegisterScreen(
 
                 state.passwordError?.let { error ->
                     Spacer(modifier = Modifier.height(4.dp))
-                    AuthErrorText(error)
+                    AuthErrorText(stringResource(error))
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -291,7 +293,7 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = state.repeatPasswordError != null,
-                    label = { Text("Повтор пароля") },
+                    label = { Text(stringResource(R.string.label_repeat_password)) },
                     visualTransformation = if (repeatPasswordVisible) {
                         VisualTransformation.None
                     } else {
@@ -307,9 +309,9 @@ fun RegisterScreen(
                                     Icons.Default.VisibilityOff
                                 },
                                 contentDescription = if (repeatPasswordVisible) {
-                                    "Скрыть пароль"
+                                    stringResource(R.string.cd_hide_password)
                                 } else {
-                                    "Показать пароль"
+                                    stringResource(R.string.cd_show_password)
                                 },
                             )
                         }
@@ -320,7 +322,7 @@ fun RegisterScreen(
 
                 state.repeatPasswordError?.let { error ->
                     Spacer(modifier = Modifier.height(4.dp))
-                    AuthErrorText(error)
+                    AuthErrorText(stringResource(error))
                 }
 
                 Spacer(modifier = Modifier.height(18.dp))
@@ -336,7 +338,13 @@ fun RegisterScreen(
                     ),
                     contentPadding = PaddingValues(vertical = 12.dp),
                 ) {
-                    Text(if (state.loading) "Регистрируем..." else "Зарегистрироваться")
+                    Text(
+                        if (state.loading) {
+                            stringResource(R.string.action_registering)
+                        } else {
+                            stringResource(R.string.action_register_submit)
+                        }
+                    )
                 }
             }
         }
@@ -349,7 +357,7 @@ private fun validateAvatar(
 ): String? {
     val mimeType = context.contentResolver.getType(uri)?.lowercase()
     if (mimeType != "image/jpeg" && mimeType != "image/png") {
-        return "Аватар должен быть в формате jpeg или png"
+        return context.getString(R.string.error_avatar_format)
     }
 
     val bounds = BitmapFactory.Options().apply {
@@ -361,11 +369,11 @@ private fun validateAvatar(
     }
 
     if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
-        return "Не удалось прочитать изображение"
+        return context.getString(R.string.error_image_read)
     }
 
     if (bounds.outWidth > 2048 || bounds.outHeight > 2048) {
-        return "Максимальный размер аватара — 2048x2048"
+        return context.getString(R.string.error_avatar_max_size)
     }
 
     return null

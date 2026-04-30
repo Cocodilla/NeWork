@@ -2,6 +2,7 @@ package ru.netology.nework.data.dto
 
 import kotlinx.serialization.Serializable
 import ru.netology.nework.model.User
+import ru.netology.nework.util.toServerUrlOrNull
 
 @Serializable
 data class UserDto(
@@ -14,7 +15,7 @@ data class UserDto(
         id = id,
         login = login,
         name = name,
-        avatar = avatar,
+        avatar = avatar.toServerUrlOrNull(),
         job = null,
         about = null,
     )

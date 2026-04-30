@@ -9,9 +9,11 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import ru.netology.nework.data.dto.EventDto
+import ru.netology.nework.data.dto.EventRequestDto
 import ru.netology.nework.data.dto.JobDto
 import ru.netology.nework.data.dto.MediaUploadResponse
 import ru.netology.nework.data.dto.PostDto
+import ru.netology.nework.data.dto.PostRequestDto
 import ru.netology.nework.data.dto.UserDto
 
 interface ApiService {
@@ -20,7 +22,7 @@ interface ApiService {
     suspend fun getPosts(): List<PostDto>
 
     @POST("posts")
-    suspend fun savePost(@Body body: PostDto): PostDto
+    suspend fun savePost(@Body body: PostRequestDto): PostDto
 
     @DELETE("posts/{id}")
     suspend fun removePost(@Path("id") id: Long)
@@ -35,7 +37,7 @@ interface ApiService {
     suspend fun getEvents(): List<EventDto>
 
     @POST("events")
-    suspend fun saveEvent(@Body body: EventDto): EventDto
+    suspend fun saveEvent(@Body body: EventRequestDto): EventDto
 
     @DELETE("events/{id}")
     suspend fun removeEvent(@Path("id") id: Long)
@@ -55,11 +57,14 @@ interface ApiService {
     @GET("users")
     suspend fun getUsers(): List<UserDto>
 
+    @GET("users/{id}")
+    suspend fun getUserById(@Path("id") id: Long): UserDto
+
     @GET("{authorId}/wall")
     suspend fun getUserWall(@Path("authorId") authorId: Long): List<PostDto>
 
-    @GET("{authorId}/jobs")
-    suspend fun getJobs(@Path("authorId") authorId: Long): List<JobDto>
+    @GET("{userId}/jobs")
+    suspend fun getJobs(@Path("userId") userId: Long): List<JobDto>
 
     @POST("my/jobs")
     suspend fun saveJob(@Body body: JobDto): JobDto

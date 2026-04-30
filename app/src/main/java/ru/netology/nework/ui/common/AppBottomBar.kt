@@ -1,7 +1,7 @@
 package ru.netology.nework.ui.common
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Article
+import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.Icon
@@ -9,7 +9,9 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import ru.netology.nework.R
 import androidx.navigation.compose.currentBackStackEntryAsState
 import ru.netology.nework.navigation.Destination
 
@@ -21,6 +23,9 @@ fun AppBottomBar(
     val currentRoute = backStackEntry?.destination?.route
     val usersSelected = currentRoute == Destination.Users.route ||
         currentRoute == Destination.UserProfile.route
+    val postsLabel = stringResource(R.string.nav_posts)
+    val eventsLabel = stringResource(R.string.nav_events)
+    val usersLabel = stringResource(R.string.nav_users)
 
     NavigationBar {
         NavigationBarItem(
@@ -31,8 +36,8 @@ fun AppBottomBar(
                     launchSingleTop = true
                 }
             },
-            icon = { Icon(Icons.Outlined.Article, contentDescription = "Posts") },
-            label = { Text("Posts") },
+            icon = { Icon(Icons.AutoMirrored.Outlined.Article, contentDescription = postsLabel) },
+            label = { Text(postsLabel) },
         )
 
         NavigationBarItem(
@@ -42,8 +47,8 @@ fun AppBottomBar(
                     launchSingleTop = true
                 }
             },
-            icon = { Icon(Icons.Outlined.Event, contentDescription = "Events") },
-            label = { Text("Events") },
+            icon = { Icon(Icons.Outlined.Event, contentDescription = eventsLabel) },
+            label = { Text(eventsLabel) },
         )
 
         NavigationBarItem(
@@ -53,8 +58,8 @@ fun AppBottomBar(
                     launchSingleTop = true
                 }
             },
-            icon = { Icon(Icons.Outlined.People, contentDescription = "Users") },
-            label = { Text("Users") },
+            icon = { Icon(Icons.Outlined.People, contentDescription = usersLabel) },
+            label = { Text(usersLabel) },
         )
     }
 }

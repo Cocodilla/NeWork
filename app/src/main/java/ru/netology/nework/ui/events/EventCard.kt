@@ -41,13 +41,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import ru.netology.nework.R
 import ru.netology.nework.model.Event
 import ru.netology.nework.model.EventType
 import ru.netology.nework.model.PostMediaType
 import ru.netology.nework.ui.common.ExternalLinkText
+import ru.netology.nework.util.toDisplayDateTimeOrSelf
 
 private val EventCardBg = Color(0xFFF5EEF8)
 private val EventCardBorder = Color(0xFFDCCEEA)
@@ -101,7 +104,7 @@ fun EventCard(
                 } else {
                     AsyncImage(
                         model = event.authorAvatar,
-                        contentDescription = "Avatar",
+                        contentDescription = stringResource(R.string.cd_avatar),
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape),
@@ -118,7 +121,7 @@ fun EventCard(
                         color = Color(0xFF2B2B2B),
                     )
                     Text(
-                        text = event.published,
+                        text = event.published.toDisplayDateTimeOrSelf(),
                         color = EventMuted,
                     )
                 }
@@ -128,7 +131,7 @@ fun EventCard(
                         IconButton(onClick = { expanded = true }) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
-                                contentDescription = "Меню",
+                                contentDescription = stringResource(R.string.cd_menu),
                                 tint = EventMuted,
                             )
                         }
@@ -138,7 +141,7 @@ fun EventCard(
                             onDismissRequest = { expanded = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Редактировать") },
+                                text = { Text(stringResource(R.string.action_edit)) },
                                 leadingIcon = { Icon(Icons.Filled.Edit, contentDescription = null) },
                                 onClick = {
                                     expanded = false
@@ -146,7 +149,7 @@ fun EventCard(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Удалить") },
+                                text = { Text(stringResource(R.string.action_delete)) },
                                 leadingIcon = { Icon(Icons.Filled.Delete, contentDescription = null) },
                                 onClick = {
                                     expanded = false
@@ -169,7 +172,7 @@ fun EventCard(
                 ) {
                     AsyncImage(
                         model = event.mediaUrl,
-                        contentDescription = "Event media",
+                        contentDescription = stringResource(R.string.cd_event_media),
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1.55f),
@@ -179,7 +182,7 @@ fun EventCard(
                     if (event.mediaType == PostMediaType.VIDEO) {
                         Icon(
                             imageVector = Icons.Filled.PlayCircleFilled,
-                            contentDescription = "Play",
+                            contentDescription = stringResource(R.string.cd_play),
                             tint = Color.White,
                             modifier = Modifier.size(56.dp),
                         )
@@ -189,13 +192,13 @@ fun EventCard(
             }
 
             Text(
-                text = event.type.toDisplayName(),
+                text = stringResource(event.type.toDisplayNameRes()),
                 color = Color(0xFF2B2B2B),
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(modifier = Modifier.height(2.dp))
             Text(
-                text = event.datetime,
+                text = event.datetime.toDisplayDateTimeOrSelf(),
                 color = EventMuted,
             )
 
@@ -227,7 +230,7 @@ fun EventCard(
                 IconButton(onClick = onLike) {
                     Icon(
                         imageVector = if (event.likedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Like",
+                        contentDescription = stringResource(R.string.cd_like),
                         tint = EventAccent,
                     )
                 }
@@ -241,7 +244,7 @@ fun EventCard(
                 IconButton(onClick = onShare) {
                     Icon(
                         imageVector = Icons.Outlined.Share,
-                        contentDescription = "Share",
+                        contentDescription = stringResource(R.string.cd_share),
                         tint = EventAccent,
                     )
                 }
@@ -250,7 +253,7 @@ fun EventCard(
 
                 Icon(
                     imageVector = Icons.Outlined.People,
-                    contentDescription = "Participants",
+                    contentDescription = stringResource(R.string.cd_participants),
                     tint = EventAccent,
                 )
                 Spacer(modifier = Modifier.size(6.dp))
@@ -265,7 +268,7 @@ fun EventCard(
 
 fun Event.participantsCount(): Int = participantsIds.size
 
-private fun EventType.toDisplayName(): String = when (this) {
-    EventType.ONLINE -> "Online"
-    EventType.OFFLINE -> "Offline"
+private fun EventType.toDisplayNameRes(): Int = when (this) {
+    EventType.ONLINE -> R.string.event_type_online
+    EventType.OFFLINE -> R.string.event_type_offline
 }

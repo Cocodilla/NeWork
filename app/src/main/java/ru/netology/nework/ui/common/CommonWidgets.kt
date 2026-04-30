@@ -11,7 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import ru.netology.nework.R
 
 @Composable
 fun LoadingState() {
@@ -26,9 +28,11 @@ fun LoadingState() {
 
 @Composable
 fun ErrorState(
-    message: String = "Не удалось загрузить данные",
+    message: String? = null,
     onRetry: () -> Unit,
 ) {
+    val resolvedMessage = message ?: stringResource(R.string.error_load_data)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -36,12 +40,12 @@ fun ErrorState(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = message, style = MaterialTheme.typography.bodyLarge)
+        Text(text = resolvedMessage, style = MaterialTheme.typography.bodyLarge)
         Button(
             onClick = onRetry,
             modifier = Modifier.padding(top = 12.dp),
         ) {
-            Text("Повторить")
+            Text(stringResource(R.string.action_retry))
         }
     }
 }

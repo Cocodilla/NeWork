@@ -48,11 +48,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import ru.netology.nework.R
 import ru.netology.nework.navigation.Destination
 import ru.netology.nework.model.AttachmentType
 import ru.netology.nework.model.EventType
@@ -122,7 +124,7 @@ fun EditEventScreen(
 
     if (showSpeakerPicker) {
         UserPickerDialog(
-            title = "Выбрать спикеров",
+            title = stringResource(R.string.event_editor_choose_speakers),
             users = state.availableUsers,
             initiallySelectedIds = state.speakerIds.toSet(),
             onDismiss = { showSpeakerPicker = false },
@@ -144,7 +146,7 @@ fun EditEventScreen(
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Text(
-                    text = "Настройки события",
+                    text = stringResource(R.string.event_editor_settings_title),
                     style = MaterialTheme.typography.titleLarge,
                 )
 
@@ -152,29 +154,29 @@ fun EditEventScreen(
                     value = state.datetime,
                     onValueChange = viewModel::changeDateTime,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Date") },
-                    supportingText = { Text("MM/dd/yyyy HH:mm или 2026-04-25T18:00:00") },
+                    label = { Text(stringResource(R.string.event_editor_datetime_label)) },
+                    supportingText = { Text(stringResource(R.string.event_editor_datetime_hint)) },
                 )
 
                 Text(
-                    text = "Type",
+                    text = stringResource(R.string.event_editor_type_label),
                     style = MaterialTheme.typography.titleMedium,
                 )
 
                 EventTypeOption(
                     selected = state.type == EventType.ONLINE,
-                    title = "Online",
+                    title = stringResource(R.string.event_type_online),
                     onClick = { viewModel.changeType(EventType.ONLINE) },
                 )
                 EventTypeOption(
                     selected = state.type == EventType.OFFLINE,
-                    title = "Offline",
+                    title = stringResource(R.string.event_type_offline),
                     onClick = { viewModel.changeType(EventType.OFFLINE) },
                 )
 
                 if (state.type == EventType.OFFLINE && state.coordinates == null) {
                     Text(
-                        text = "Для офлайн-события добавьте точку через иконку места.",
+                        text = stringResource(R.string.event_editor_offline_location_hint),
                         color = EventEditorPlaceholder,
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -184,7 +186,7 @@ fun EditEventScreen(
                     onClick = { showSettingsSheet = false },
                     modifier = Modifier.padding(bottom = 16.dp),
                 ) {
-                    Text("Готово")
+                    Text(stringResource(R.string.action_done))
                 }
             }
         }
@@ -196,7 +198,11 @@ fun EditEventScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (state.id == 0L) "New event" else "Edit event",
+                        text = if (state.id == 0L) {
+                            stringResource(R.string.event_editor_title_new)
+                        } else {
+                            stringResource(R.string.event_editor_title_edit)
+                        },
                         color = EventEditorAccent,
                     )
                 },
@@ -204,7 +210,7 @@ fun EditEventScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
+                            contentDescription = stringResource(R.string.cd_back),
                             tint = EventEditorAccent,
                         )
                     }
@@ -227,7 +233,7 @@ fun EditEventScreen(
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Check,
-                                contentDescription = "Сохранить",
+                                contentDescription = stringResource(R.string.cd_save),
                                 tint = EventEditorAccent,
                             )
                         }
@@ -262,7 +268,7 @@ fun EditEventScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Настройки события",
+                    contentDescription = stringResource(R.string.cd_event_settings),
                 )
             }
         },
@@ -292,7 +298,7 @@ fun EditEventScreen(
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (state.content.isBlank()) {
                             Text(
-                                text = "Что будет на событии?",
+                                text = stringResource(R.string.event_editor_placeholder),
                                 color = EventEditorPlaceholder,
                                 style = MaterialTheme.typography.bodyLarge,
                             )
@@ -303,7 +309,11 @@ fun EditEventScreen(
             )
 
             Text(
-                text = "${state.type.toDisplayName()} • ${state.datetime}",
+                text = stringResource(
+                    R.string.event_editor_summary,
+                    stringResource(state.type.toDisplayNameRes()),
+                    state.datetime,
+                ),
                 color = EventEditorPlaceholder,
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -316,13 +326,13 @@ fun EditEventScreen(
             )
 
             SelectedUsersCard(
-                title = "Speakers",
+                title = stringResource(R.string.event_editor_speakers),
                 users = state.availableUsers.filter { user -> user.id in state.speakerIds },
             )
 
             state.coordinates?.let { coordinates ->
                 LocationPreviewCard(
-                    title = "Локация события",
+                    title = stringResource(R.string.event_editor_location_title),
                     coordinates = coordinates,
                     onRemove = viewModel::clearCoordinates,
                 )
@@ -344,29 +354,29 @@ private fun EventEditorBottomBar(
         NavigationBarItem(
             selected = false,
             onClick = onPickPhoto,
-            icon = { Icon(Icons.Outlined.Image, contentDescription = "Фото") },
-            label = { Text("Фото") },
+            icon = { Icon(Icons.Outlined.Image, contentDescription = stringResource(R.string.attachment_photo)) },
+            label = { Text(stringResource(R.string.attachment_photo)) },
             alwaysShowLabel = false,
         )
         NavigationBarItem(
             selected = false,
             onClick = onPickAttachment,
-            icon = { Icon(Icons.Filled.AttachFile, contentDescription = "Вложение") },
-            label = { Text("Файл") },
+            icon = { Icon(Icons.Filled.AttachFile, contentDescription = stringResource(R.string.attachment_file)) },
+            label = { Text(stringResource(R.string.attachment_file)) },
             alwaysShowLabel = false,
         )
         NavigationBarItem(
             selected = false,
             onClick = onPickSpeakers,
-            icon = { Icon(Icons.Outlined.People, contentDescription = "Спикеры") },
-            label = { Text("Люди") },
+            icon = { Icon(Icons.Outlined.People, contentDescription = stringResource(R.string.event_editor_speakers)) },
+            label = { Text(stringResource(R.string.event_editor_speakers)) },
             alwaysShowLabel = false,
         )
         NavigationBarItem(
             selected = false,
             onClick = onPickLocation,
-            icon = { Icon(Icons.Outlined.Place, contentDescription = "Место") },
-            label = { Text("Место") },
+            icon = { Icon(Icons.Outlined.Place, contentDescription = stringResource(R.string.attachment_place)) },
+            label = { Text(stringResource(R.string.attachment_place)) },
             alwaysShowLabel = false,
         )
     }
@@ -393,7 +403,7 @@ private fun EventTypeOption(
     }
 }
 
-private fun EventType.toDisplayName(): String = when (this) {
-    EventType.ONLINE -> "Online"
-    EventType.OFFLINE -> "Offline"
+private fun EventType.toDisplayNameRes(): Int = when (this) {
+    EventType.ONLINE -> R.string.event_type_online
+    EventType.OFFLINE -> R.string.event_type_offline
 }

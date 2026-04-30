@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import ru.netology.nework.model.Event
 import ru.netology.nework.model.EventType
 import ru.netology.nework.model.PostMediaType
+import ru.netology.nework.util.toServerUrlOrNull
 
 @Serializable
 data class EventDto(
@@ -22,15 +23,14 @@ data class EventDto(
     val participantsIds: List<Long> = emptyList(),
     val participatedByMe: Boolean = false,
     val link: String? = null,
-    val ownedByMe: Boolean = false,
     val attachment: AttachmentDto? = null,
     val coords: CoordinatesDto? = null,
 ) {
-    fun toModel(): Event = Event(
+    fun toModel(currentUserId: Long = 0L): Event = Event(
         id = id,
         authorId = authorId,
         author = author,
-        authorAvatar = authorAvatar,
+        authorAvatar = authorAvatar.toServerUrlOrNull(),
         authorJob = authorJob,
         content = content,
         published = published,
@@ -40,11 +40,11 @@ data class EventDto(
         likeOwnerIds = likeOwnerIds,
         likes = likeOwnerIds.size,
         link = link,
-        ownedByMe = ownedByMe,
+        ownedByMe = authorId != 0L && authorId == currentUserId,
         speakerIds = speakerIds,
         participantsIds = participantsIds,
         participatedByMe = participatedByMe,
-        mediaUrl = attachment?.url,
+        mediaUrl = attachment?.url.toServerUrlOrNull(),
         mediaType = attachment?.toPostMediaType() ?: PostMediaType.NONE,
         coordinates = coords?.toModel(),
     )

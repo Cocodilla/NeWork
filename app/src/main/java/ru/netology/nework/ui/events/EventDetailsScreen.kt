@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -62,6 +63,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
+import ru.netology.nework.R
 import ru.netology.nework.model.Event
 import ru.netology.nework.model.EventType
 import ru.netology.nework.model.PostMediaType
@@ -73,6 +75,7 @@ import ru.netology.nework.ui.common.ErrorState
 import ru.netology.nework.ui.common.ExternalLinkText
 import ru.netology.nework.ui.common.LoadingState
 import ru.netology.nework.ui.map.StaticLocationMap
+import ru.netology.nework.util.toDisplayDateTimeOrSelf
 
 private val EventDetailsBackground = Color(0xFFF7F2FA)
 private val EventDetailsSurface = Color(0xFFF8F1FB)
@@ -95,25 +98,25 @@ fun EventDetailsScreen(
     val context = LocalContext.current
     var dialogTitle by remember { mutableStateOf<String?>(null) }
     var dialogUsers by remember { mutableStateOf<List<User>>(emptyList()) }
-    var showAuthDialog by remember { mutableStateOf(false) }
+    var authDialogMessageRes by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(eventId) {
         viewModel.load(eventId)
     }
 
-    if (showAuthDialog) {
+    authDialogMessageRes?.let { messageRes ->
         AuthRequiredDialog(
-            title = "Нужен аккаунт",
-            message = "Чтобы участвовать в событии, войди в аккаунт или зарегистрируйся.",
+            title = stringResource(R.string.auth_required_title),
+            message = stringResource(messageRes),
             onLogin = {
-                showAuthDialog = false
+                authDialogMessageRes = null
                 navController.navigate(Destination.Login.route)
             },
             onRegister = {
-                showAuthDialog = false
+                authDialogMessageRes = null
                 navController.navigate(Destination.Register.route)
             },
-            onDismiss = { showAuthDialog = false },
+            onDismiss = { authDialogMessageRes = null },
         )
     }
 
@@ -132,12 +135,12 @@ fun EventDetailsScreen(
         containerColor = EventDetailsBackground,
         topBar = {
             TopAppBar(
-                title = { Text("Event") },
+                title = { Text(stringResource(R.string.screen_event)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
+                            contentDescription = stringResource(R.string.cd_back),
                             tint = EventDetailsText,
                         )
                     }
@@ -153,20 +156,20 @@ fun EventDetailsScreen(
                                     buildString {
                                         append(event.author)
                                         append("\n")
-                                        append(event.datetime)
+                                        append(event.datetime.toDisplayDateTimeOrSelf())
                                         append("\n\n")
                                         append(event.content)
                                     }
                                 )
                             }
                             context.startActivity(
-                                Intent.createChooser(intent, "Поделиться событием")
+                                Intent.createChooser(intent, context.getString(R.string.action_share_event))
                             )
                         }
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Share,
-                            contentDescription = "Поделиться",
+                            contentDescription = stringResource(R.string.cd_share),
                             tint = EventDetailsText,
                         )
                     }
@@ -213,12 +216,12 @@ fun EventDetailsScreen(
                                     verticalArrangement = Arrangement.spacedBy(6.dp),
                                 ) {
                                     Text(
-                                        text = event.type.toDisplayName(),
+                                        text = stringResource(event.type.toDisplayNameRes()),
                                         fontWeight = FontWeight.SemiBold,
                                         color = EventDetailsText,
                                     )
                                     Text(
-                                        text = event.datetime,
+                                        text = event.datetime.toDisplayDateTimeOrSelf(),
                                         color = EventDetailsMuted,
                                     )
                                     Text(
@@ -239,18 +242,19 @@ fun EventDetailsScreen(
                                         if (authState.authorized) {
                                             viewModel.onParticipate()
                                         } else {
-                                            showAuthDialog = true
+                                            authDialogMessageRes =
+                                                R.string.auth_required_event_participation_message
                                         }
                                     },
                                 )
 
                                 EventMetricSection(
-                                    title = "Likers",
+                                    title = stringResource(R.string.screen_event_likers),
                                     count = event.likeOwnerIds.size,
                                     users = state.likers,
                                     onMoreClick = if (state.likers.isNotEmpty()) {
                                         {
-                                            dialogTitle = "Likers"
+                                            dialogTitle = context.getString(R.string.screen_event_likers)
                                             dialogUsers = state.likers.distinctBy(User::id)
                                         }
                                     } else {
@@ -258,7 +262,14 @@ fun EventDetailsScreen(
                                     },
                                     leading = {
                                         IconButton(
-                                            onClick = viewModel::onLike,
+                                            onClick = {
+                                                if (authState.authorized) {
+                                                    viewModel.onLike()
+                                                } else {
+                                                    authDialogMessageRes =
+                                                        R.string.auth_required_event_like_message
+                                                }
+                                            },
                                             modifier = Modifier.size(32.dp),
                                         ) {
                                             Icon(
@@ -267,7 +278,7 @@ fun EventDetailsScreen(
                                                 } else {
                                                     Icons.Outlined.FavoriteBorder
                                                 },
-                                                contentDescription = "Нравится",
+                                                contentDescription = stringResource(R.string.cd_liked),
                                                 tint = EventDetailsAccent,
                                             )
                                         }
@@ -276,22 +287,22 @@ fun EventDetailsScreen(
 
                                 if (state.speakers.isNotEmpty()) {
                                     EventPeopleSection(
-                                        title = "Speakers",
+                                        title = stringResource(R.string.screen_event_speakers),
                                         users = state.speakers,
                                         onMoreClick = {
-                                            dialogTitle = "Speakers"
+                                            dialogTitle = context.getString(R.string.screen_event_speakers)
                                             dialogUsers = state.speakers.distinctBy(User::id)
                                         },
                                     )
                                 }
 
                                 EventMetricSection(
-                                    title = "Participants",
+                                    title = stringResource(R.string.screen_event_participants),
                                     count = event.participantsIds.size,
                                     users = state.participants,
                                     onMoreClick = if (state.participants.isNotEmpty()) {
                                         {
-                                            dialogTitle = "Participants"
+                                            dialogTitle = context.getString(R.string.screen_event_participants)
                                             dialogUsers = state.participants.distinctBy(User::id)
                                         }
                                     } else {
@@ -309,7 +320,7 @@ fun EventDetailsScreen(
                                 event.coordinates?.let { coordinates ->
                                     HorizontalDivider(color = Color(0xFFE8DEEF))
                                     Text(
-                                        text = "Location",
+                                        text = stringResource(R.string.event_location_title),
                                         fontWeight = FontWeight.SemiBold,
                                         color = EventDetailsText,
                                     )
@@ -348,7 +359,13 @@ private fun EventParticipationButton(
         ),
         shape = RoundedCornerShape(18.dp),
     ) {
-        Text(if (participatedByMe) "Вы участвуете" else "Участвовать")
+        Text(
+            if (participatedByMe) {
+                stringResource(R.string.action_participating)
+            } else {
+                stringResource(R.string.action_participate)
+            }
+        )
     }
 }
 
@@ -364,7 +381,7 @@ private fun EventHeader(
             user = User(
                 id = event.authorId,
                 login = event.author.lowercase().replace(" ", ""),
-                name = event.author.ifBlank { "Speaker" },
+                name = event.author.ifBlank { stringResource(R.string.screen_user_fallback) },
                 avatar = event.authorAvatar,
                 job = event.authorJob,
                 about = null,
@@ -379,16 +396,16 @@ private fun EventHeader(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
-                text = event.author.ifBlank { "Unknown speaker" },
+                text = event.author.ifBlank { stringResource(R.string.screen_user_fallback) },
                 fontWeight = FontWeight.SemiBold,
                 color = EventDetailsText,
             )
             Text(
-                text = event.authorJob?.takeIf { it.isNotBlank() } ?: "В поиске работы",
+                text = event.authorJob?.takeIf { it.isNotBlank() } ?: stringResource(R.string.job_searching),
                 color = EventDetailsMuted,
             )
             Text(
-                text = event.published,
+                text = event.published.toDisplayDateTimeOrSelf(),
                 color = EventDetailsMuted,
             )
         }
@@ -408,7 +425,7 @@ private fun EventMediaBlock(
     ) {
         SubcomposeAsyncImage(
             model = event.mediaUrl,
-            contentDescription = "Обложка события",
+            contentDescription = stringResource(R.string.cd_event_cover),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop,
         ) {
@@ -426,7 +443,7 @@ private fun EventMediaBlock(
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = event.type.toDisplayName(),
+                            text = stringResource(event.type.toDisplayNameRes()),
                             color = EventDetailsAccent,
                             fontWeight = FontWeight.Bold,
                         )
@@ -438,7 +455,7 @@ private fun EventMediaBlock(
         if (event.mediaType == PostMediaType.VIDEO) {
             Icon(
                 imageVector = Icons.Filled.PlayCircleFilled,
-                contentDescription = "Видео",
+                contentDescription = stringResource(R.string.attachment_video),
                 tint = Color.White,
                 modifier = Modifier.size(64.dp),
             )
@@ -576,7 +593,7 @@ private fun EventUsersDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Закрыть")
+                Text(stringResource(R.string.action_close))
             }
         },
     )
@@ -631,7 +648,7 @@ private fun EventAvatar(
     }
 }
 
-private fun EventType.toDisplayName(): String = when (this) {
-    EventType.ONLINE -> "Online"
-    EventType.OFFLINE -> "Offline"
+private fun EventType.toDisplayNameRes(): Int = when (this) {
+    EventType.ONLINE -> R.string.event_type_online
+    EventType.OFFLINE -> R.string.event_type_offline
 }

@@ -15,20 +15,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import ru.netology.nework.ui.theme.NeWorkColors
 
 object AuthUi {
-    val ScreenBackground = Color(0xFFF7F2FA)
-    val AppBarBackground = Color(0xFFF7F2FA)
+    val ScreenBackground = NeWorkColors.ScreenBackground
+    val AppBarBackground = NeWorkColors.ScreenBackground
 
-    val FieldContainer = Color(0xFFEDE7F6)
-    val FieldBorder = Color(0xFF7E57C2)
-    val FieldLabel = Color(0xFF7E57C2)
-    val ErrorColor = Color(0xFFD32F2F)
+    val FieldContainer = NeWorkColors.AuthFieldContainer
+    val FieldBorder = NeWorkColors.AccentSecondary
+    val FieldLabel = NeWorkColors.AccentSecondary
+    val ErrorColor = NeWorkColors.Error
 
-    val PrimaryButton = Color(0xFF6F52B5)
+    val PrimaryButton = NeWorkColors.AccentPrimary
     val PrimaryButtonText = Color.White
 
-    val SecondaryText = Color(0xFF6F52B5)
+    val SecondaryText = NeWorkColors.AccentPrimary
 
     val FieldShape = RoundedCornerShape(4.dp)
     val ButtonShape = RoundedCornerShape(24.dp)
@@ -56,7 +57,7 @@ fun AuthAvatarPlaceholder(
     Box(
         modifier = modifier
             .clip(CircleShape)
-            .background(Color(0xFFD6D6D6)),
+            .background(NeWorkColors.AvatarPlaceholder),
         contentAlignment = Alignment.Center,
     ) {
         icon()
@@ -69,7 +70,7 @@ fun authTextFieldColors() = OutlinedTextFieldDefaults.colors(
     unfocusedContainerColor = AuthUi.FieldContainer,
     disabledContainerColor = AuthUi.FieldContainer,
     focusedBorderColor = AuthUi.FieldBorder,
-    unfocusedBorderColor = Color(0xFFB39DDB),
+    unfocusedBorderColor = NeWorkColors.AuthFieldBorderUnfocused,
     focusedLabelColor = AuthUi.FieldLabel,
     unfocusedLabelColor = AuthUi.FieldLabel,
     cursorColor = AuthUi.FieldBorder,

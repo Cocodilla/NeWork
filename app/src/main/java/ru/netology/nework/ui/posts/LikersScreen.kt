@@ -33,19 +33,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import ru.netology.nework.R
 import ru.netology.nework.model.User
 import ru.netology.nework.ui.common.ErrorState
 import ru.netology.nework.ui.common.LoadingState
-
-private val ScreenBg = Color(0xFFF7F2FA)
-private val CardBg = Color(0xFFF5EEF8)
-private val Accent = Color(0xFF6F52B5)
-private val Muted = Color(0xFF6B6B6B)
+import ru.netology.nework.ui.theme.NeWorkColors
+import ru.netology.nework.ui.theme.NeWorkFontWeights
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,20 +60,20 @@ fun LikersScreen(
     }
 
     Scaffold(
-        containerColor = ScreenBg,
+        containerColor = NeWorkColors.ScreenBackground,
         topBar = {
             TopAppBar(
-                title = { Text("Likers") },
+                title = { Text(stringResource(R.string.screen_likers)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
+                            contentDescription = stringResource(R.string.cd_back),
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ScreenBg,
+                    containerColor = NeWorkColors.ScreenBackground,
                 ),
             )
         },
@@ -105,7 +104,7 @@ fun LikersScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = CardBg),
+                            colors = CardDefaults.cardColors(containerColor = NeWorkColors.CardBackground),
                             elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         ) {
                             Row(
@@ -118,13 +117,13 @@ fun LikersScreen(
                                     modifier = Modifier
                                         .size(36.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFFD8CBE7)),
+                                        .background(NeWorkColors.AvatarBackground),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
                                         text = user.name.take(1).uppercase(),
-                                        color = Accent,
-                                        fontWeight = FontWeight.Bold,
+                                        color = NeWorkColors.AccentPrimary,
+                                        fontWeight = NeWorkFontWeights.Bold,
                                     )
                                 }
 
@@ -135,12 +134,12 @@ fun LikersScreen(
                                 ) {
                                     Text(
                                         text = user.name,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF2B2B2B),
+                                        fontWeight = NeWorkFontWeights.SemiBold,
+                                        color = NeWorkColors.TextPrimarySoft,
                                     )
                                     Text(
                                         text = user.login,
-                                        color = Muted,
+                                        color = NeWorkColors.TextMutedSoft,
                                     )
                                 }
                             }

@@ -36,38 +36,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import ru.netology.nework.R
 import ru.netology.nework.model.Post
 import ru.netology.nework.model.PostMediaType
 import ru.netology.nework.ui.common.ExternalLinkText
-
-private val CardBg = Color(0xFFF5EEF8)
-private val CardBorder = Color(0xFFDCCEEA)
-private val Accent = Color(0xFF6F52B5)
-private val Muted = Color(0xFF6B6B6B)
+import ru.netology.nework.ui.theme.NeWorkColors
+import ru.netology.nework.ui.theme.NeWorkFontWeights
+import ru.netology.nework.util.toDisplayDateTimeOrSelf
 
 @Composable
 fun PostCard(
     post: Post,
     onClick: () -> Unit,
     onLike: () -> Unit,
+    likeEnabled: Boolean,
     onShare: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val avatarDescription = stringResource(R.string.cd_avatar)
+    val menuDescription = stringResource(R.string.cd_menu)
+    val postMediaDescription = stringResource(R.string.cd_post_media)
+    val playDescription = stringResource(R.string.cd_play)
+    val likeDescription = stringResource(R.string.cd_like)
+    val shareDescription = stringResource(R.string.cd_share)
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CardBg),
+        colors = CardDefaults.cardColors(containerColor = NeWorkColors.CardBackground),
         border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(CardBorder)
+            brush = androidx.compose.ui.graphics.SolidColor(NeWorkColors.BorderSecondary)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
@@ -83,19 +90,19 @@ fun PostCard(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFD8CBE7)),
+                            .background(NeWorkColors.AvatarBackground),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = post.author.firstOrNull()?.uppercase() ?: "?",
-                            color = Accent,
-                            fontWeight = FontWeight.Bold,
+                            color = NeWorkColors.AccentPrimary,
+                            fontWeight = NeWorkFontWeights.Bold,
                         )
                     }
                 } else {
                     AsyncImage(
                         model = post.authorAvatar,
-                        contentDescription = "Avatar",
+                        contentDescription = avatarDescription,
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape),
@@ -110,12 +117,12 @@ fun PostCard(
                 ) {
                     Text(
                         text = post.author,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF2B2B2B),
+                        fontWeight = NeWorkFontWeights.SemiBold,
+                        color = NeWorkColors.TextPrimarySoft,
                     )
                     Text(
-                        text = post.published,
-                        color = Muted,
+                        text = post.published.toDisplayDateTimeOrSelf(),
+                        color = NeWorkColors.TextMutedSoft,
                     )
                 }
 
@@ -128,8 +135,8 @@ fun PostCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
-                                contentDescription = "Menu",
-                                tint = Muted,
+                                contentDescription = menuDescription,
+                                tint = NeWorkColors.TextMutedSoft,
                             )
                         }
 
@@ -138,7 +145,7 @@ fun PostCard(
                             onDismissRequest = { expanded = false },
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Редактировать") },
+                                text = { Text(stringResource(R.string.action_edit)) },
                                 leadingIcon = {
                                     Icon(Icons.Filled.Edit, contentDescription = null)
                                 },
@@ -148,7 +155,7 @@ fun PostCard(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Удалить") },
+                                text = { Text(stringResource(R.string.action_delete)) },
                                 leadingIcon = {
                                     Icon(Icons.Filled.Delete, contentDescription = null)
                                 },
@@ -173,7 +180,7 @@ fun PostCard(
                 ) {
                     AsyncImage(
                         model = post.mediaUrl,
-                        contentDescription = "Post media",
+                        contentDescription = postMediaDescription,
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1.55f),
@@ -183,7 +190,7 @@ fun PostCard(
                     if (post.mediaType == PostMediaType.VIDEO) {
                         Icon(
                             imageVector = Icons.Filled.PlayCircleFilled,
-                            contentDescription = "Play",
+                            contentDescription = playDescription,
                             tint = Color.White,
                             modifier = Modifier.size(64.dp),
                         )
@@ -194,20 +201,20 @@ fun PostCard(
 
             Text(
                 text = post.content,
-                color = Color(0xFF2B2B2B),
+                color = NeWorkColors.TextPrimarySoft,
             )
 
             post.link?.takeIf { it.isNotBlank() }?.let { link ->
                 Spacer(modifier = Modifier.height(10.dp))
                 ExternalLinkText(
                     url = link,
-                    color = Accent,
+                    color = NeWorkColors.AccentPrimary,
                 )
             }
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            HorizontalDivider(color = Color(0xFFE6DDF0))
+            HorizontalDivider(color = NeWorkColors.DividerSoft)
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -215,17 +222,20 @@ fun PostCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
             ) {
-                IconButton(onClick = onLike) {
+                IconButton(
+                    onClick = onLike,
+                    enabled = likeEnabled,
+                ) {
                     Icon(
                         imageVector = if (post.likedByMe) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                        contentDescription = "Like",
-                        tint = Accent,
+                        contentDescription = likeDescription,
+                        tint = NeWorkColors.AccentPrimary,
                     )
                 }
 
                 Text(
                     text = post.likes.toString(),
-                    color = Accent,
+                    color = NeWorkColors.AccentPrimary,
                 )
 
                 Spacer(modifier = Modifier.size(8.dp))
@@ -233,8 +243,8 @@ fun PostCard(
                 IconButton(onClick = onShare) {
                     Icon(
                         imageVector = Icons.Outlined.Share,
-                        contentDescription = "Share",
-                        tint = Accent,
+                        contentDescription = shareDescription,
+                        tint = NeWorkColors.AccentPrimary,
                     )
                 }
             }

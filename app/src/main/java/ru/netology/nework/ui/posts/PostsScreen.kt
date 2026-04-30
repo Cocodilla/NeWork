@@ -13,7 +13,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
@@ -22,10 +24,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import ru.netology.nework.R
 import ru.netology.nework.navigation.Destination
 import ru.netology.nework.ui.common.AppBottomBar
 import ru.netology.nework.ui.common.AuthAwareTopBar
@@ -33,9 +37,7 @@ import ru.netology.nework.ui.common.AuthRequiredDialog
 import ru.netology.nework.ui.common.ErrorState
 import ru.netology.nework.ui.common.LoadingState
 import ru.netology.nework.ui.auth.AuthViewModel
-
-private val ScreenBg = Color(0xFFF7F2FA)
-private val Accent = Color(0xFF6F52B5)
+import ru.netology.nework.ui.theme.NeWorkColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,34 +49,34 @@ fun PostsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    var showAuthDialog by remember { mutableStateOf(false) }
+    var authDialogMessageRes by remember { mutableStateOf<Int?>(null) }
 
-    if (showAuthDialog) {
+    authDialogMessageRes?.let { messageRes ->
         AuthRequiredDialog(
-            title = "Нужен аккаунт",
-            message = "Чтобы создать пост, войди в аккаунт или зарегистрируйся.",
+            title = stringResource(R.string.auth_required_title),
+            message = stringResource(messageRes),
             onLogin = {
-                showAuthDialog = false
+                authDialogMessageRes = null
                 navController.navigate(Destination.Login.route)
             },
             onRegister = {
-                showAuthDialog = false
+                authDialogMessageRes = null
                 navController.navigate(Destination.Register.route)
             },
-            onDismiss = { showAuthDialog = false },
+            onDismiss = { authDialogMessageRes = null },
         )
     }
 
     Scaffold(
-        containerColor = ScreenBg,
+        containerColor = NeWorkColors.ScreenBackground,
         topBar = {
             AuthAwareTopBar(
                 navController = navController,
                 isAuthorized = authState.authorized,
                 onLogout = authViewModel::logout,
-                title = "Посты",
-                containerColor = ScreenBg,
-                contentColor = Accent,
+                title = stringResource(R.string.screen_posts),
+                containerColor = NeWorkColors.ScreenBackground,
+                contentColor = NeWorkColors.AccentPrimary,
             )
         },
         bottomBar = {
@@ -86,20 +88,23 @@ fun PostsScreen(
                     if (authState.authorized) {
                         navController.navigate(Destination.PostEditor.createRoute())
                     } else {
-                        showAuthDialog = true
+                        authDialogMessageRes = R.string.auth_required_post_message
                     }
                 },
-                containerColor = Color(0xFFE7D9F5),
-                contentColor = Accent,
+                containerColor = NeWorkColors.FabBackground,
+                contentColor = NeWorkColors.AccentPrimary,
                 modifier = Modifier.navigationBarsPadding(),
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Добавить")
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.action_add))
             }
         }
     ) { paddingValues ->
         when {
-            state.loading -> LoadingState()
-            state.error != null -> ErrorState(onRetry = { viewModel.load() })
+            state.loading && state.data.isEmpty() -> LoadingState()
+            state.error != null && state.data.isEmpty() -> ErrorState(
+                message = state.error,
+                onRetry = { viewModel.load() },
+            )
             else -> {
                 LazyColumn(
                     modifier = Modifier
@@ -108,20 +113,40 @@ fun PostsScreen(
                     contentPadding = PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
+                    state.error?.let { error ->
+                        item {
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                            )
+                        }
+                    }
+
                     items(state.data, key = { it.id }) { post ->
                         PostCard(
                             post = post,
                             onClick = {
                                 navController.navigate(Destination.PostDetails.createRoute(post.id))
                             },
-                            onLike = { viewModel.onLike(post) },
+                            onLike = {
+                                if (authState.authorized) {
+                                    viewModel.onLike(post)
+                                } else {
+                                    authDialogMessageRes = R.string.auth_required_post_like_message
+                                }
+                            },
+                            likeEnabled = !post.ownedByMe,
                             onShare = {
                                 val intent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, "${post.author}\n\n${post.content}")
                                 }
                                 context.startActivity(
-                                    Intent.createChooser(intent, "Поделиться постом")
+                                    Intent.createChooser(
+                                        intent,
+                                        context.getString(R.string.action_share_post),
+                                    )
                                 )
                             },
                             onEdit = {

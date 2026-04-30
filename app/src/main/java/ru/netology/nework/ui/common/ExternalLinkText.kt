@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.foundation.clickable
+import ru.netology.nework.R
 
 @Composable
 fun ExternalLinkText(
@@ -45,7 +46,7 @@ private fun Context.openExternalLink(url: String) {
         startActivity(intent)
     }.onFailure {
         if (it is ActivityNotFoundException) {
-            Toast.makeText(this, "Не удалось открыть ссылку", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_open_link_failed), Toast.LENGTH_SHORT).show()
         }
     }
 }

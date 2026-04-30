@@ -33,22 +33,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import ru.netology.nework.R
 import ru.netology.nework.model.AttachmentModel
 import ru.netology.nework.model.AttachmentType
 import ru.netology.nework.model.Coordinates
 import ru.netology.nework.model.PostMediaType
 import ru.netology.nework.model.User
 import ru.netology.nework.ui.map.StaticLocationMap
+import ru.netology.nework.ui.theme.NeWorkColors
+import ru.netology.nework.ui.theme.NeWorkFontWeights
 import ru.netology.nework.util.AttachmentValidation
 import ru.netology.nework.util.readAttachmentModel
 import ru.netology.nework.util.toDisplayString
-
-private val PreviewSurface = Color(0xFFF6F0FA)
-private val AccentColor = Color(0xFF2B1D3F)
-private val SubtleColor = Color(0xFF857A92)
 
 @Composable
 fun EditorAttachmentPreview(
@@ -67,16 +67,16 @@ fun EditorAttachmentPreview(
 
         attachment?.type == AttachmentType.VIDEO -> {
             PreviewFileCard(
-                title = attachment.name ?: "Видео готово к публикации",
-                subtitle = "Видео будет отправлено вместе с записью",
+                title = attachment.name ?: stringResource(R.string.attachment_ready_video_title),
+                subtitle = stringResource(R.string.attachment_ready_video_subtitle),
                 onRemove = onRemove,
             )
         }
 
         attachment?.type == AttachmentType.AUDIO -> {
             PreviewFileCard(
-                title = attachment.name ?: "Аудио готово к публикации",
-                subtitle = "Аудио будет отправлено вместе с записью",
+                title = attachment.name ?: stringResource(R.string.attachment_ready_audio_title),
+                subtitle = stringResource(R.string.attachment_ready_audio_subtitle),
                 onRemove = onRemove,
             )
         }
@@ -90,7 +90,7 @@ fun EditorAttachmentPreview(
 
         !existingMediaUrl.isNullOrBlank() && existingMediaType == PostMediaType.VIDEO -> {
             PreviewFileCard(
-                title = "Видео прикреплено",
+                title = stringResource(R.string.attachment_video_attached),
                 subtitle = existingMediaUrl,
                 onRemove = onRemove,
             )
@@ -156,12 +156,12 @@ fun UserPickerDialog(
             TextButton(
                 onClick = { onConfirm(selectedIds.toList()) }
             ) {
-                Text("Готово")
+                Text(stringResource(R.string.action_done))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Отмена")
+                Text(stringResource(R.string.action_cancel))
             }
         },
     )
@@ -184,12 +184,12 @@ fun SelectedUsersCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = NeWorkFontWeights.SemiBold,
             )
             Text(
                 text = users.joinToString { it.name },
                 style = MaterialTheme.typography.bodyMedium,
-                color = SubtleColor,
+                color = NeWorkColors.Placeholder,
             )
         }
     }
@@ -205,27 +205,27 @@ fun LocationPreviewCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(PreviewSurface)
+            .background(NeWorkColors.SurfaceSecondary)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = AccentColor,
+            fontWeight = NeWorkFontWeights.SemiBold,
+            color = NeWorkColors.AccentDark,
         )
         Text(
             text = coordinates.toDisplayString(),
             style = MaterialTheme.typography.bodyMedium,
-            color = SubtleColor,
+            color = NeWorkColors.Placeholder,
         )
         StaticLocationMap(
             coordinates = coordinates,
             modifier = Modifier.fillMaxWidth(),
         )
         FilledTonalButton(onClick = onRemove) {
-            Text("Убрать точку")
+            Text(stringResource(R.string.action_remove_point))
         }
     }
 }
@@ -240,7 +240,11 @@ fun handlePickedAttachment(
 
     val attachment = context.readAttachmentModel(uri)
     if (attachment.type !in allowedTypes) {
-        Toast.makeText(context, "Этот тип вложения здесь не поддерживается", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            context.getString(R.string.attachment_unsupported_here),
+            Toast.LENGTH_SHORT,
+        ).show()
         return
     }
 
@@ -262,11 +266,11 @@ private fun PreviewImage(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(PreviewSurface),
+            .background(NeWorkColors.SurfaceSecondary),
     ) {
         AsyncImage(
             model = model,
-            contentDescription = "Превью вложения",
+            contentDescription = stringResource(R.string.attachment_preview),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(210.dp),
@@ -279,7 +283,7 @@ private fun PreviewImage(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 16.dp),
         ) {
-            Text("Remove")
+            Text(stringResource(R.string.action_remove))
         }
     }
 }
@@ -294,23 +298,23 @@ private fun PreviewFileCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(PreviewSurface)
+            .background(NeWorkColors.SurfaceSecondary)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = AccentColor,
+            fontWeight = NeWorkFontWeights.SemiBold,
+            color = NeWorkColors.AccentDark,
         )
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
-            color = SubtleColor,
+            color = NeWorkColors.Placeholder,
         )
         FilledTonalButton(onClick = onRemove) {
-            Text("Remove")
+            Text(stringResource(R.string.action_remove))
         }
     }
 }

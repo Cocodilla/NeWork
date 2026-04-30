@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import ru.netology.nework.R
 import ru.netology.nework.data.repository.AuthRepository
 import ru.netology.nework.model.PhotoModel
 import javax.inject.Inject
@@ -46,8 +47,8 @@ class AuthViewModel @Inject constructor(
 
     fun signIn() {
         val state = _loginState.value
-        val loginError = if (state.login.isBlank()) "Логин не может быть пустым" else null
-        val passwordError = if (state.password.isBlank()) "Пароль не может быть пустым" else null
+        val loginError = if (state.login.isBlank()) R.string.error_login_required else null
+        val passwordError = if (state.password.isBlank()) R.string.error_password_required else null
         if (loginError != null || passwordError != null) {
             _loginState.value = state.copy(loginError = loginError, passwordError = passwordError)
             return
@@ -60,7 +61,10 @@ class AuthViewModel @Inject constructor(
                 _loginState.value = LoginUiState()
                 _events.send(AuthEvent.Authorized)
             } catch (e: HttpException) {
-                _loginState.value = state.copy(loading = false, authError = e.code() == 400)
+                _loginState.value = state.copy(
+                    loading = false,
+                    authError = e.code() == 400 || e.code() == 404,
+                )
                 _events.send(AuthEvent.WrongCredentials)
             } catch (_: Exception) {
                 _loginState.value = state.copy(loading = false)
@@ -91,12 +95,12 @@ class AuthViewModel @Inject constructor(
 
     fun register() {
         val state = _registerState.value
-        val loginError = if (state.login.isBlank()) "Логин не может быть пустым" else null
-        val nameError = if (state.name.isBlank()) "Имя не может быть пустым" else null
-        val passwordError = if (state.password.isBlank()) "Пароль не может быть пустым" else null
+        val loginError = if (state.login.isBlank()) R.string.error_login_required else null
+        val nameError = if (state.name.isBlank()) R.string.error_name_required else null
+        val passwordError = if (state.password.isBlank()) R.string.error_password_required else null
         val repeatPasswordError = when {
-            state.repeatPassword.isBlank() -> "Повторите пароль"
-            state.password != state.repeatPassword -> "Пароли не совпадают"
+            state.repeatPassword.isBlank() -> R.string.error_repeat_password_required
+            state.password != state.repeatPassword -> R.string.error_password_mismatch
             else -> null
         }
 
@@ -122,8 +126,15 @@ class AuthViewModel @Inject constructor(
                 _registerState.value = RegisterUiState()
                 _events.send(AuthEvent.Authorized)
             } catch (e: HttpException) {
-                _registerState.value = state.copy(loading = false, registerError = e.code() == 400)
-                _events.send(AuthEvent.UserAlreadyExists)
+                _registerState.value = state.copy(
+                    loading = false,
+                    registerError = e.code() == 403,
+                )
+                if (e.code() == 403) {
+                    _events.send(AuthEvent.UserAlreadyExists)
+                } else {
+                    _events.send(AuthEvent.UnknownError)
+                }
             } catch (_: Exception) {
                 _registerState.value = state.copy(loading = false)
                 _events.send(AuthEvent.UnknownError)

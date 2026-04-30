@@ -48,23 +48,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import java.time.LocalDate
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import ru.netology.nework.R
+import ru.netology.nework.ui.theme.NeWorkColors
+import ru.netology.nework.ui.theme.NeWorkFontWeights
 
-private val JobEditorBg = Color(0xFFF7F2FA)
-private val JobEditorSurface = Color(0xFFF8F1FB)
-private val JobEditorAccent = Color(0xFF6F52B5)
-private val JobEditorBorder = Color(0xFFE2D5EC)
-private val JobEditorText = Color(0xFF231B2F)
-private val JobEditorMuted = Color(0xFF7C7288)
-private val JobEditorDivider = Color(0xFFD9CDE6)
+private val JobEditorBg = NeWorkColors.ScreenBackground
+private val JobEditorSurface = NeWorkColors.SurfacePrimary
+private val JobEditorAccent = NeWorkColors.AccentPrimary
+private val JobEditorBorder = NeWorkColors.BorderPrimary
+private val JobEditorText = NeWorkColors.TextPrimary
+private val JobEditorMuted = NeWorkColors.TextMuted
+private val JobEditorDivider = NeWorkColors.DividerMedium
 
 private val JobDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 private val JobDateParsers = listOf(
@@ -108,7 +114,9 @@ fun EditJobScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (jobId == 0L) "New job" else "Edit job",
+                        text = stringResource(
+                            if (jobId == 0L) R.string.screen_job_new else R.string.screen_job_edit
+                        ),
                         color = JobEditorText,
                     )
                 },
@@ -116,7 +124,7 @@ fun EditJobScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
+                            contentDescription = stringResource(R.string.cd_back),
                             tint = JobEditorText,
                         )
                     }
@@ -140,13 +148,13 @@ fun EditJobScreen(
             JobEditorTextField(
                 value = state.name,
                 onValueChange = viewModel::onNameChange,
-                label = "Name",
+                label = stringResource(R.string.job_label_name),
                 trailingIcon = {
                     if (state.name.isNotBlank()) {
                         IconButton(onClick = { viewModel.onNameChange("") }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Очистить название",
+                                contentDescription = stringResource(R.string.cd_clear_name),
                                 tint = JobEditorText,
                             )
                         }
@@ -157,13 +165,13 @@ fun EditJobScreen(
             JobEditorTextField(
                 value = state.position,
                 onValueChange = viewModel::onPositionChange,
-                label = "Position",
+                label = stringResource(R.string.job_label_position),
             )
 
             JobEditorTextField(
                 value = state.link,
                 onValueChange = viewModel::onLinkChange,
-                label = "Link",
+                label = stringResource(R.string.job_label_link),
             )
 
             OutlinedButton(
@@ -176,7 +184,14 @@ fun EditJobScreen(
                 ),
                 contentPadding = ButtonDefaults.ContentPadding,
             ) {
-                Text(jobDateRangeLabel(state.start, state.finish))
+                Text(
+                    jobDateRangeLabel(
+                        start = state.start,
+                        finish = state.finish,
+                        emptyLabel = stringResource(R.string.job_select_dates),
+                        currentLabel = stringResource(R.string.job_now_short),
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -199,7 +214,11 @@ fun EditJobScreen(
                 ),
                 shape = RoundedCornerShape(18.dp),
             ) {
-                Text(if (jobId == 0L) "Create" else "Save")
+                Text(
+                    stringResource(
+                        if (jobId == 0L) R.string.action_create else R.string.action_save_job
+                    )
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -279,7 +298,7 @@ private fun JobDatesDialog(
                     .padding(top = 18.dp, bottom = 8.dp),
             ) {
                 Text(
-                    text = "Select date",
+                    text = stringResource(R.string.job_dialog_select_date),
                     color = JobEditorMuted,
                     modifier = Modifier.padding(horizontal = 24.dp),
                 )
@@ -292,14 +311,14 @@ private fun JobDatesDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Enter dates",
+                        text = stringResource(R.string.job_enter_dates),
                         color = JobEditorText,
-                        fontWeight = FontWeight.Medium,
+                        fontWeight = NeWorkFontWeights.Medium,
                     )
                     IconButton(onClick = { activeField = JobDateField.START }) {
                         Icon(
                             imageVector = Icons.Default.CalendarToday,
-                            contentDescription = "Выбрать дату",
+                            contentDescription = stringResource(R.string.job_select_date),
                             tint = JobEditorMuted,
                         )
                     }
@@ -315,9 +334,9 @@ private fun JobDatesDialog(
                 ) {
                     JobDateBox(
                         modifier = Modifier.weight(1f),
-                        label = "Date",
+                        label = stringResource(R.string.job_date_label),
                         value = start,
-                        placeholder = "dd.MM.yyyy",
+                        placeholder = stringResource(R.string.job_date_placeholder),
                         onClick = { activeField = JobDateField.START },
                     )
 
@@ -325,7 +344,7 @@ private fun JobDatesDialog(
                         modifier = Modifier.weight(1f),
                         label = null,
                         value = finish,
-                        placeholder = "End date",
+                        placeholder = stringResource(R.string.job_end_date_placeholder),
                         onClick = { activeField = JobDateField.FINISH },
                         onClear = {
                             if (finish.isNotBlank()) {
@@ -342,14 +361,20 @@ private fun JobDatesDialog(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = JobEditorAccent)
+                        Text(
+                            text = stringResource(R.string.action_cancel),
+                            color = JobEditorAccent,
+                        )
                     }
 
                     TextButton(
                         onClick = onDismiss,
                         enabled = start.isNotBlank(),
                     ) {
-                        Text("OK", color = JobEditorAccent)
+                        Text(
+                            text = stringResource(R.string.action_done),
+                            color = JobEditorAccent,
+                        )
                     }
                 }
             }
@@ -400,7 +425,7 @@ private fun JobDateBox(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Очистить дату окончания",
+                        contentDescription = stringResource(R.string.cd_clear_finish_date),
                         tint = JobEditorMuted,
                     )
                 }
@@ -442,9 +467,16 @@ private fun AndroidDatePicker(
     }
 }
 
-private fun jobDateRangeLabel(start: String, finish: String): String {
-    if (start.isBlank()) return "Select dates"
-    return "${displayJobDate(start)} – ${finish.takeIf { it.isNotBlank() }?.let(::displayJobDate) ?: "НВ"}"
+private fun jobDateRangeLabel(
+    start: String,
+    finish: String,
+    emptyLabel: String,
+    currentLabel: String,
+): String {
+    if (start.isBlank()) return emptyLabel
+    return "${
+        displayJobDate(start)
+    } – ${finish.takeIf { it.isNotBlank() }?.let(::displayJobDate) ?: currentLabel}"
 }
 
 private fun displayJobDate(value: String): String =
@@ -453,6 +485,16 @@ private fun displayJobDate(value: String): String =
 private fun parseJobDate(value: String): LocalDate? {
     val normalized = value.trim()
     if (normalized.isBlank()) return null
+
+    runCatching { Instant.parse(normalized).atZone(java.time.ZoneId.systemDefault()).toLocalDate() }
+        .getOrNull()
+        ?.let { return it }
+    runCatching { OffsetDateTime.parse(normalized).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate() }
+        .getOrNull()
+        ?.let { return it }
+    runCatching { ZonedDateTime.parse(normalized).toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate() }
+        .getOrNull()
+        ?.let { return it }
 
     return JobDateParsers.firstNotNullOfOrNull { formatter ->
         runCatching {

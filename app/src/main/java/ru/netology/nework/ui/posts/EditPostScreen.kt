@@ -42,11 +42,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import ru.netology.nework.R
 import ru.netology.nework.navigation.Destination
 import ru.netology.nework.model.AttachmentType
 import ru.netology.nework.ui.common.EditorAttachmentPreview
@@ -54,12 +56,8 @@ import ru.netology.nework.ui.common.LocationPreviewCard
 import ru.netology.nework.ui.common.SelectedUsersCard
 import ru.netology.nework.ui.common.UserPickerDialog
 import ru.netology.nework.ui.common.handlePickedAttachment
+import ru.netology.nework.ui.theme.NeWorkColors
 import ru.netology.nework.util.toCoordinatesOrNull
-
-private val ComposerBackground = Color(0xFFFFFBFF)
-private val ComposerBar = Color(0xFFF4EEF8)
-private val ComposerAccent = Color(0xFF2B1D3F)
-private val ComposerPlaceholder = Color(0xFF857A92)
 private const val POST_LOCATION_RESULT_KEY = "post_location_result"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,7 +112,7 @@ fun EditPostScreen(
 
     if (showUserPicker) {
         UserPickerDialog(
-            title = "Отметить людей",
+            title = stringResource(R.string.post_editor_mark_people),
             users = state.availableUsers,
             initiallySelectedIds = state.mentionIds.toSet(),
             onDismiss = { showUserPicker = false },
@@ -126,21 +124,25 @@ fun EditPostScreen(
     }
 
     Scaffold(
-        containerColor = ComposerBackground,
+        containerColor = NeWorkColors.EditorBackground,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (state.id == 0L) "New post" else "Edit post",
-                        color = ComposerAccent,
+                        text = if (state.id == 0L) {
+                            stringResource(R.string.post_editor_title_new)
+                        } else {
+                            stringResource(R.string.post_editor_title_edit)
+                        },
+                        color = NeWorkColors.AccentDark,
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
-                            tint = ComposerAccent,
+                            contentDescription = stringResource(R.string.cd_back),
+                            tint = NeWorkColors.AccentDark,
                         )
                     }
                 },
@@ -157,19 +159,19 @@ fun EditPostScreen(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(22.dp),
                                 strokeWidth = 2.dp,
-                                color = ComposerAccent,
+                                color = NeWorkColors.AccentDark,
                             )
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Check,
-                                contentDescription = "Сохранить",
-                                tint = ComposerAccent,
+                                contentDescription = stringResource(R.string.cd_save),
+                                tint = NeWorkColors.AccentDark,
                             )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ComposerBackground,
+                    containerColor = NeWorkColors.EditorBackground,
                 ),
                 modifier = Modifier.statusBarsPadding(),
             )
@@ -207,7 +209,7 @@ fun EditPostScreen(
                     .height(220.dp),
                 textStyle = MaterialTheme.typography.bodyLarge.merge(
                     TextStyle(
-                        color = ComposerAccent,
+                        color = NeWorkColors.AccentDark,
                         lineHeight = MaterialTheme.typography.bodyLarge.lineHeight,
                     )
                 ),
@@ -215,8 +217,8 @@ fun EditPostScreen(
                     Box(modifier = Modifier.fillMaxSize()) {
                         if (state.content.isBlank()) {
                             Text(
-                                text = "Что у вас нового?",
-                                color = ComposerPlaceholder,
+                                text = stringResource(R.string.post_editor_placeholder),
+                                color = NeWorkColors.Placeholder,
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
@@ -233,15 +235,23 @@ fun EditPostScreen(
             )
 
             SelectedUsersCard(
-                title = "Отмечены в посте",
+                title = stringResource(R.string.post_editor_selected_users),
                 users = state.availableUsers.filter { user -> user.id in state.mentionIds },
             )
 
             state.coordinates?.let { coordinates ->
                 LocationPreviewCard(
-                    title = "Точка на карте",
+                    title = stringResource(R.string.post_editor_location_title),
                     coordinates = coordinates,
                     onRemove = viewModel::clearCoordinates,
+                )
+            }
+
+            state.saveError?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }
@@ -256,7 +266,7 @@ private fun PostEditorBottomBar(
     onPickLocation: () -> Unit,
 ) {
     NavigationBar(
-        containerColor = ComposerBar,
+        containerColor = NeWorkColors.EditorBar,
     ) {
         NavigationBarItem(
             selected = false,
@@ -264,10 +274,10 @@ private fun PostEditorBottomBar(
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.Image,
-                    contentDescription = "Фото",
+                    contentDescription = stringResource(R.string.attachment_photo),
                 )
             },
-            label = { Text("Фото") },
+            label = { Text(stringResource(R.string.attachment_photo)) },
         )
         NavigationBarItem(
             selected = false,
@@ -275,10 +285,10 @@ private fun PostEditorBottomBar(
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.Videocam,
-                    contentDescription = "Видео",
+                    contentDescription = stringResource(R.string.attachment_video),
                 )
             },
-            label = { Text("Видео") },
+            label = { Text(stringResource(R.string.attachment_video)) },
         )
         NavigationBarItem(
             selected = false,
@@ -286,10 +296,10 @@ private fun PostEditorBottomBar(
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.People,
-                    contentDescription = "Люди",
+                    contentDescription = stringResource(R.string.attachment_people),
                 )
             },
-            label = { Text("Люди") },
+            label = { Text(stringResource(R.string.attachment_people)) },
         )
         NavigationBarItem(
             selected = false,
@@ -297,10 +307,10 @@ private fun PostEditorBottomBar(
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.Place,
-                    contentDescription = "Место",
+                    contentDescription = stringResource(R.string.attachment_place),
                 )
             },
-            label = { Text("Место") },
+            label = { Text(stringResource(R.string.attachment_place)) },
         )
     }
 }

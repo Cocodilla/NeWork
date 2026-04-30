@@ -31,11 +31,18 @@ class MyProfileViewModel @Inject constructor(
 
             runCatching {
                 val authId = appAuth.authState.first().id
-                val users = repository.getAll()
-                val me = when {
-                    authId != 0L -> users.firstOrNull { it.id == authId } ?: users.firstOrNull()
-                    else -> users.firstOrNull()
+                if (authId == 0L) {
+                    return@runCatching MyProfileUiState(
+                        loading = false,
+                        user = null,
+                        wall = emptyList(),
+                        jobs = emptyList(),
+                        error = "Пользователь не найден",
+                    )
                 }
+
+                val users = repository.getAll()
+                val me = users.firstOrNull { it.id == authId }
 
                 if (me == null) {
                     MyProfileUiState(
@@ -46,19 +53,11 @@ class MyProfileViewModel @Inject constructor(
                         error = "Пользователь не найден",
                     )
                 } else {
-                    val wall = runCatching {
-                        repository.getWallByUserId(me.id)
-                    }.getOrDefault(emptyList())
-
-                    val jobs = runCatching {
-                        repository.getJobsByUserId(me.id)
-                    }.getOrDefault(emptyList())
-
                     MyProfileUiState(
                         loading = false,
                         user = me,
-                        wall = wall,
-                        jobs = jobs,
+                        wall = repository.getWallByUserId(me.id),
+                        jobs = repository.getJobsByUserId(me.id),
                         error = null,
                     )
                 }
@@ -80,10 +79,18 @@ class MyProfileViewModel @Inject constructor(
         val userId = _state.value.user?.id ?: return
 
         viewModelScope.launch {
-            repository.removeJob(userId, jobId)
-            _state.value = _state.value.copy(
-                jobs = _state.value.jobs.filterNot { it.id == jobId }
-            )
+            runCatching {
+                repository.removeJob(userId, jobId)
+            }.onSuccess {
+                _state.value = _state.value.copy(
+                    jobs = _state.value.jobs.filterNot { it.id == jobId },
+                    error = null,
+                )
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    error = error.message ?: "Не удалось удалить место работы",
+                )
+            }
         }
     }
 }

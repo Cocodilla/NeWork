@@ -37,19 +37,11 @@ class UserProfileViewModel @Inject constructor(
                         error = "Пользователь не найден",
                     )
                 } else {
-                    val wall = runCatching {
-                        repository.getWallByUserId(user.id)
-                    }.getOrDefault(emptyList())
-
-                    val jobs = runCatching {
-                        repository.getJobsByUserId(user.id)
-                    }.getOrDefault(emptyList())
-
                     UserProfileUiState(
                         loading = false,
                         user = user,
-                        wall = wall,
-                        jobs = jobs,
+                        wall = repository.getWallByUserId(user.id),
+                        jobs = repository.getJobsByUserId(user.id),
                         error = null,
                     )
                 }

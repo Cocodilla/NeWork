@@ -1,6 +1,6 @@
 package ru.netology.nework.data.repository
 
-import android.content.ContentResolver
+import android.content.Context
 import android.webkit.MimeTypeMap
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +14,6 @@ import ru.netology.nework.data.api.AuthApiService
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
-import android.content.Context
 
 @Singleton
 class AuthRepository @Inject constructor(
@@ -35,23 +34,25 @@ class AuthRepository @Inject constructor(
         password: String,
         avatarPath: String?,
     ) {
-        val media = avatarPath?.let { path ->
+        val response = avatarPath?.let { path ->
             val file = File(path)
             val ext = MimeTypeMap.getFileExtensionFromUrl(file.name)
             val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)?.toMediaTypeOrNull()
                 ?: "image/*".toMediaTypeOrNull()
-            MultipartBody.Part.createFormData(
-                "media",
-                file.name,
-                file.asRequestBody(mime),
+            api.registerWithPhoto(
+                login = login.toRequestBody(MultipartBody.FORM),
+                pass = password.toRequestBody(MultipartBody.FORM),
+                name = name.toRequestBody(MultipartBody.FORM),
+                file = MultipartBody.Part.createFormData(
+                    "file",
+                    file.name,
+                    file.asRequestBody(mime),
+                ),
             )
-        }
-
-        val response = api.register(
-            login = login.toRequestBody(MultipartBody.FORM),
-            pass = password.toRequestBody(MultipartBody.FORM),
-            name = name.toRequestBody(MultipartBody.FORM),
-            media = media,
+        } ?: api.register(
+            login = login,
+            pass = password,
+            name = name,
         )
         appAuth.setAuth(response.id, response.token)
     }

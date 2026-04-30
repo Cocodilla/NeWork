@@ -39,9 +39,12 @@ class PostDetailsViewModel @Inject constructor(
 
             runCatching {
                 val post = repository.getById(postId)
-                val likers = repository.getLikersByPostId(postId)
+                val users = post?.let { usersRepository.getAll() }.orEmpty()
+                val likers = post?.let { currentPost ->
+                    users.filter { user -> user.id in currentPost.likeOwnerIds }
+                }.orEmpty()
                 val mentionedUsers = post?.let { currentPost ->
-                    usersRepository.getAll().filter { user -> user.id in currentPost.mentionIds }
+                    users.filter { user -> user.id in currentPost.mentionIds }
                 }.orEmpty()
 
                 PostDetailsUiState(
@@ -68,19 +71,34 @@ class PostDetailsViewModel @Inject constructor(
     fun onLike() {
         val current = _state.value.post ?: return
         viewModelScope.launch {
-            val updated = repository.likeById(current.id) ?: return@launch
-            _state.value = _state.value.copy(
-                post = updated,
-                likers = repository.getLikersByPostId(updated.id),
-            )
+            runCatching {
+                val updated = repository.likeById(current.id) ?: return@launch
+                val users = usersRepository.getAll()
+                _state.value = _state.value.copy(
+                    post = updated,
+                    likers = users.filter { user -> user.id in updated.likeOwnerIds },
+                    error = null,
+                )
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    error = error.message ?: "Не удалось обновить лайк поста",
+                )
+            }
         }
     }
 
     fun onRemove(onRemoved: () -> Unit) {
         val current = _state.value.post ?: return
         viewModelScope.launch {
-            repository.removeById(current.id)
-            onRemoved()
+            runCatching {
+                repository.removeById(current.id)
+            }.onSuccess {
+                onRemoved()
+            }.onFailure { error ->
+                _state.value = _state.value.copy(
+                    error = error.message ?: "Не удалось удалить пост",
+                )
+            }
         }
     }
 }

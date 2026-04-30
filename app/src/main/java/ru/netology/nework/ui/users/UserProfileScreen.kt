@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -53,6 +54,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
+import ru.netology.nework.R
 import ru.netology.nework.model.Job
 import ru.netology.nework.model.Post
 import ru.netology.nework.model.PostMediaType
@@ -61,12 +63,10 @@ import ru.netology.nework.navigation.Destination
 import ru.netology.nework.ui.common.ErrorState
 import ru.netology.nework.ui.common.ExternalLinkText
 import ru.netology.nework.ui.common.LoadingState
-
-private val UserProfileBg = Color(0xFFF7F2FA)
-private val UserProfileSurface = Color(0xFFF8F1FB)
-private val UserProfileBorder = Color(0xFFE2D5EC)
-private val UserProfileAccent = Color(0xFF6F52B5)
-private val UserProfileMuted = Color(0xFF7C7288)
+import ru.netology.nework.ui.theme.NeWorkColors
+import ru.netology.nework.ui.theme.NeWorkFontWeights
+import ru.netology.nework.util.toDisplayDateOrSelf
+import ru.netology.nework.util.toDisplayDateTimeOrSelf
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -83,24 +83,25 @@ fun UserProfileScreen(
     }
 
     Scaffold(
-        containerColor = UserProfileBg,
+        containerColor = NeWorkColors.ScreenBackground,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = state.user?.let { "${it.name} / ${it.login}" } ?: "Пользователь",
+                        text = state.user?.let { "${it.name} / ${it.login}" }
+                            ?: stringResource(R.string.screen_user_fallback),
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Назад",
+                            contentDescription = stringResource(R.string.cd_back),
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = UserProfileBg,
+                    containerColor = NeWorkColors.ScreenBackground,
                 ),
             )
         }
@@ -131,18 +132,18 @@ fun UserProfileScreen(
                         stickyHeader {
                             TabRow(
                                 selectedTabIndex = selectedTab,
-                                containerColor = UserProfileBg,
-                                contentColor = UserProfileAccent,
+                                containerColor = NeWorkColors.ScreenBackground,
+                                contentColor = NeWorkColors.AccentPrimary,
                             ) {
                                 Tab(
                                     selected = selectedTab == 0,
                                     onClick = { selectedTab = 0 },
-                                    text = { Text("Wall") },
+                                    text = { Text(stringResource(R.string.tab_wall)) },
                                 )
                                 Tab(
                                     selected = selectedTab == 1,
                                     onClick = { selectedTab = 1 },
-                                    text = { Text("Jobs") },
+                                    text = { Text(stringResource(R.string.tab_jobs)) },
                                 )
                             }
                         }
@@ -150,7 +151,7 @@ fun UserProfileScreen(
                         if (selectedTab == 0) {
                             if (state.wall.isEmpty()) {
                                 item {
-                                    EmptyUserSection(text = "На стене пока нет записей")
+                                    EmptyUserSection(text = stringResource(R.string.empty_wall))
                                 }
                             } else {
                                 items(state.wall, key = { it.id }) { post ->
@@ -168,7 +169,7 @@ fun UserProfileScreen(
                         } else {
                             if (state.jobs.isEmpty()) {
                                 item {
-                                    EmptyUserSection(text = "Работы пока не добавлены")
+                                    EmptyUserSection(text = stringResource(R.string.empty_jobs))
                                 }
                             } else {
                                 items(state.jobs, key = { it.id }) { job ->
@@ -198,7 +199,7 @@ private fun EmptyUserSection(
     ) {
         Text(
             text = text,
-            color = UserProfileMuted,
+            color = NeWorkColors.TextMuted,
         )
     }
 }
@@ -213,9 +214,9 @@ private fun UserWallCard(
         modifier = modifier
             .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = UserProfileSurface),
+        colors = CardDefaults.cardColors(containerColor = NeWorkColors.SurfacePrimary),
         border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(UserProfileBorder)
+            brush = androidx.compose.ui.graphics.SolidColor(NeWorkColors.BorderPrimary)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         onClick = onClick,
@@ -243,25 +244,25 @@ private fun UserWallCard(
                 androidx.compose.foundation.layout.Column {
                     Text(
                         text = post.author,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF231B2F),
+                        fontWeight = NeWorkFontWeights.SemiBold,
+                        color = NeWorkColors.TextPrimary,
                     )
                     Text(
-                        text = post.published,
-                        color = UserProfileMuted,
+                        text = post.published.toDisplayDateTimeOrSelf(),
+                        color = NeWorkColors.TextMuted,
                     )
                 }
             }
 
             Text(
                 text = post.content,
-                color = Color(0xFF231B2F),
+                color = NeWorkColors.TextPrimary,
             )
 
             if (!post.mediaUrl.isNullOrBlank() && post.mediaType != PostMediaType.NONE) {
                 SubcomposeAsyncImage(
                     model = post.mediaUrl,
-                    contentDescription = "Пост пользователя",
+                    contentDescription = stringResource(R.string.user_post_media),
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1.4f)
@@ -276,15 +277,15 @@ private fun UserWallCard(
                                     .fillMaxSize()
                                     .background(
                                         brush = Brush.linearGradient(
-                                            colors = listOf(Color(0xFFE6DAF4), Color(0xFFD2BCED))
+                                            colors = listOf(NeWorkColors.GradientStart, NeWorkColors.GradientEnd)
                                         )
                                     ),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = "Photo",
-                                    color = UserProfileAccent,
-                                    fontWeight = FontWeight.SemiBold,
+                                    text = stringResource(R.string.attachment_photo),
+                                    color = NeWorkColors.AccentPrimary,
+                                    fontWeight = NeWorkFontWeights.SemiBold,
                                 )
                             }
                         }
@@ -292,7 +293,7 @@ private fun UserWallCard(
                 }
             }
 
-            HorizontalDivider(color = Color(0xFFE8DEEF))
+            HorizontalDivider(color = NeWorkColors.Divider)
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -300,14 +301,14 @@ private fun UserWallCard(
                 Icon(
                     imageVector = Icons.Filled.Favorite,
                     contentDescription = null,
-                    tint = UserProfileAccent,
+                    tint = NeWorkColors.AccentPrimary,
                 )
 
                 Spacer(modifier = Modifier.width(6.dp))
 
                 Text(
                     text = post.likes.toString(),
-                    color = UserProfileAccent,
+                    color = NeWorkColors.AccentPrimary,
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -315,7 +316,7 @@ private fun UserWallCard(
                 Icon(
                     imageVector = Icons.Outlined.Share,
                     contentDescription = null,
-                    tint = UserProfileAccent,
+                    tint = NeWorkColors.AccentPrimary,
                 )
             }
         }
@@ -330,9 +331,9 @@ private fun UserJobCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = UserProfileSurface),
+        colors = CardDefaults.cardColors(containerColor = NeWorkColors.SurfacePrimary),
         border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(UserProfileBorder)
+            brush = androidx.compose.ui.graphics.SolidColor(NeWorkColors.BorderPrimary)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
@@ -342,21 +343,25 @@ private fun UserJobCard(
         ) {
             Text(
                 text = job.name,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF231B2F),
+                fontWeight = NeWorkFontWeights.SemiBold,
+                color = NeWorkColors.TextPrimary,
             )
             Text(
-                text = "${job.start} — ${job.finish ?: "НВ"}",
-                color = UserProfileMuted,
+                text = stringResource(
+                    R.string.job_date_range,
+                    job.start.toDisplayDateOrSelf(),
+                    job.finish?.toDisplayDateOrSelf() ?: stringResource(R.string.job_now_short),
+                ),
+                color = NeWorkColors.TextMuted,
             )
             Text(
                 text = job.position,
-                color = Color(0xFF231B2F),
+                color = NeWorkColors.TextPrimary,
             )
             job.link?.takeIf { it.isNotBlank() }?.let { link ->
                 ExternalLinkText(
                     url = link,
-                    color = UserProfileAccent,
+                    color = NeWorkColors.AccentPrimary,
                 )
             }
         }

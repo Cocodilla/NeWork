@@ -16,6 +16,7 @@ fun NeWorkTheme(
     val colors = if (darkTheme) DarkColors else LightColors
     MaterialTheme(
         colorScheme = colors,
+        typography = NeWorkTypography,
         content = content,
     )
 }

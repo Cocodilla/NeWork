@@ -3,8 +3,8 @@ package ru.netology.nework.ui.map
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -18,23 +18,25 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.AdvancedMarker
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.yandex.mapkit.Animation
+import com.yandex.mapkit.geometry.Point
+import com.yandex.mapkit.map.CameraPosition
+import com.yandex.mapkit.map.InputListener
+import ru.netology.nework.R
 import ru.netology.nework.util.toCoordinatesOrNull
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,28 +46,20 @@ fun PickLocationScreen(
     resultKey: String,
     initialLocation: String = "",
 ) {
-    val defaultPoint = LatLng(55.751244, 37.618423)
+    val context = LocalContext.current
+    val defaultPoint = Point(55.751244, 37.618423)
     val initialPoint = initialLocation.toCoordinatesOrNull()?.let { coordinates ->
-        LatLng(coordinates.lat, coordinates.lng)
+        Point(coordinates.lat, coordinates.lng)
     } ?: defaultPoint
-    var selectedPoint by rememberSaveable(stateSaver = LatLngSaver) {
+    var selectedPoint by rememberSaveable(stateSaver = PointSaver) {
         mutableStateOf(initialPoint)
     }
-    val cameraPositionState = rememberCameraPositionState()
     val mapsAvailable = isMapsConfigured
-
-    LaunchedEffect(selectedPoint) {
-        if (mapsAvailable) {
-            cameraPositionState.move(
-                CameraUpdateFactory.newLatLngZoom(selectedPoint, 14f)
-            )
-        }
-    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Выбор локации") },
+                title = { Text(stringResource(R.string.screen_pick_location)) },
             )
         },
         floatingActionButton = {
@@ -89,26 +83,56 @@ fun PickLocationScreen(
                 .padding(padding)
         ) {
             if (mapsAvailable) {
-                GoogleMap(
-                    modifier = Modifier.fillMaxSize(),
-                    cameraPositionState = cameraPositionState,
-                    properties = MapProperties(isMyLocationEnabled = false),
-                    onMapClick = { point ->
-                        selectedPoint = point
-                    },
-                ) {
-                    AdvancedMarker(
-                        state = MarkerState(position = selectedPoint),
-                        title = "Выбранная точка",
-                    )
+                val mapView = rememberMapViewWithLifecycle()
+                val mapTapListener = remember {
+                    object : InputListener {
+                        override fun onMapTap(
+                            map: com.yandex.mapkit.map.Map,
+                            point: Point,
+                        ) {
+                            selectedPoint = point
+                        }
+
+                        override fun onMapLongTap(
+                            map: com.yandex.mapkit.map.Map,
+                            point: Point,
+                        ) {
+                            selectedPoint = point
+                        }
+                    }
                 }
+
+                DisposableEffect(mapView, mapTapListener) {
+                    mapView.mapWindow.map.addInputListener(mapTapListener)
+                    onDispose {
+                        mapView.mapWindow.map.removeInputListener(mapTapListener)
+                    }
+                }
+
+                AndroidView(
+                    factory = { mapView },
+                    modifier = Modifier.fillMaxSize(),
+                    update = { view ->
+                        val map = view.mapWindow.map
+                        map.move(
+                            CameraPosition(selectedPoint, 14f, 0f, 0f),
+                            Animation(Animation.Type.SMOOTH, 0.25f),
+                            null,
+                        )
+                        map.mapObjects.clear()
+                        map.mapObjects.addPlacemark().apply {
+                            geometry = selectedPoint
+                            setIcon(context.mapMarkerIcon())
+                        }
+                    },
+                )
             } else {
                 MapUnavailableCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    title = "Карта недоступна",
-                    message = "Добавь MAPS_API_KEY в gradle.properties, чтобы выбирать локацию без падения экрана.",
+                    title = stringResource(R.string.map_unavailable_title),
+                    message = stringResource(R.string.map_unavailable_pick_message),
                 )
             }
 
@@ -120,9 +144,9 @@ fun PickLocationScreen(
             ) {
                 Text(
                     text = if (mapsAvailable) {
-                        "Нажми на карту, чтобы выбрать точку"
+                        stringResource(R.string.map_hint_pick_point)
                     } else {
-                        "Сейчас можно вернуться назад и продолжить без локации."
+                        stringResource(R.string.map_hint_continue_without_location)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -130,9 +154,6 @@ fun PickLocationScreen(
                     onClick = {
                         if (mapsAvailable) {
                             selectedPoint = defaultPoint
-                            cameraPositionState.move(
-                                CameraUpdateFactory.newLatLngZoom(defaultPoint, 14f)
-                            )
                         } else {
                             navController.popBackStack()
                         }
@@ -140,7 +161,11 @@ fun PickLocationScreen(
                 ) {
                     Icon(Icons.Default.Place, contentDescription = null)
                     Text(
-                        text = if (mapsAvailable) " Сбросить к центру" else " Вернуться",
+                        text = if (mapsAvailable) {
+                            " ${stringResource(R.string.map_reset_to_center)}"
+                        } else {
+                            " ${stringResource(R.string.action_return)}"
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
@@ -149,11 +174,11 @@ fun PickLocationScreen(
     }
 }
 
-private val LatLngSaver: Saver<LatLng, List<Double>> = Saver(
+private val PointSaver: Saver<Point, List<Double>> = Saver(
     save = { point -> listOf(point.latitude, point.longitude) },
     restore = { values ->
         if (values.size == 2) {
-            LatLng(values[0], values[1])
+            Point(values[0], values[1])
         } else {
             null
         }

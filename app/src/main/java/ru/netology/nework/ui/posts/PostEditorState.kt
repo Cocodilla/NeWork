@@ -15,6 +15,7 @@ data class PostEditorState(
     val coordinates: Coordinates? = null,
     val availableUsers: List<User> = emptyList(),
     val saving: Boolean = false,
+    val saveError: String? = null,
 ) {
     val canSave: Boolean
         get() = content.trim().isNotEmpty() && !saving

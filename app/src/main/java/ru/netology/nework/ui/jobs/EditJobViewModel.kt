@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import ru.netology.nework.auth.AppAuth
 import ru.netology.nework.data.repository.UsersRepository
 import ru.netology.nework.model.Job
+import ru.netology.nework.util.toApiUtcStartOfDayOrNull
+import ru.netology.nework.util.toDisplayDateOrSelf
 
 @HiltViewModel
 class EditJobViewModel @Inject constructor(
@@ -41,8 +43,8 @@ class EditJobViewModel @Inject constructor(
                 name = job.name,
                 position = job.position,
                 link = job.link.orEmpty(),
-                start = job.start,
-                finish = job.finish.orEmpty(),
+                start = job.start.toDisplayDateOrSelf(),
+                finish = job.finish.orEmpty().toDisplayDateOrSelf(),
             )
         }
     }
@@ -79,8 +81,14 @@ class EditJobViewModel @Inject constructor(
                     id = currentState.id,
                     name = currentState.name.trim(),
                     position = currentState.position.trim(),
-                    start = currentState.start.trim(),
-                    finish = currentState.finish.trim().takeIf { it.isNotBlank() },
+                    start = currentState.start
+                        .trim()
+                        .toApiUtcStartOfDayOrNull()
+                        ?: return@launch,
+                    finish = currentState.finish
+                        .trim()
+                        .takeIf { it.isNotBlank() }
+                        ?.toApiUtcStartOfDayOrNull(),
                     link = currentState.link.trim().takeIf { it.isNotBlank() },
                 )
             )
@@ -88,12 +96,6 @@ class EditJobViewModel @Inject constructor(
         }
     }
 
-    private suspend fun resolveCurrentUserId(): Long? {
-        val authId = appAuth.authState.first().id
-        val users = usersRepository.getAll()
-        return when {
-            authId != 0L -> users.firstOrNull { it.id == authId }?.id ?: users.firstOrNull()?.id
-            else -> users.firstOrNull()?.id
-        }
-    }
+    private suspend fun resolveCurrentUserId(): Long? =
+        appAuth.authState.first().id.takeIf { it != 0L }
 }

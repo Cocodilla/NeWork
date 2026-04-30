@@ -31,11 +31,8 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import ru.netology.nework.model.User
-
-private val UserCardSurface = Color(0xFFF8F1FB)
-private val UserCardBorder = Color(0xFFE2D5EC)
-private val UserAccent = Color(0xFF6F52B5)
-private val UserMuted = Color(0xFF7C7288)
+import ru.netology.nework.ui.theme.NeWorkColors
+import ru.netology.nework.ui.theme.NeWorkFontWeights
 
 @Composable
 fun UserListCard(
@@ -48,9 +45,9 @@ fun UserListCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = UserCardSurface),
+        colors = CardDefaults.cardColors(containerColor = NeWorkColors.SurfacePrimary),
         border = CardDefaults.outlinedCardBorder().copy(
-            brush = androidx.compose.ui.graphics.SolidColor(UserCardBorder)
+            brush = androidx.compose.ui.graphics.SolidColor(NeWorkColors.BorderPrimary)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
@@ -72,12 +69,12 @@ fun UserListCard(
             ) {
                 Text(
                     text = user.name,
-                    color = Color(0xFF231B2F),
-                    fontWeight = FontWeight.SemiBold,
+                    color = NeWorkColors.TextPrimary,
+                    fontWeight = NeWorkFontWeights.SemiBold,
                 )
                 Text(
                     text = user.login,
-                    color = UserMuted,
+                    color = NeWorkColors.TextMuted,
                 )
             }
         }
@@ -155,7 +152,7 @@ private fun HeroFallback(
     Box(
         modifier = modifier.background(
             brush = Brush.linearGradient(
-                colors = listOf(Color(0xFFE6DAF4), Color(0xFFD2BCED))
+                colors = listOf(NeWorkColors.GradientStart, NeWorkColors.GradientEnd)
             )
         ),
         contentAlignment = Alignment.Center,
@@ -170,8 +167,8 @@ private fun HeroFallback(
             )
             Text(
                 text = user.name,
-                color = Color(0xFF231B2F),
-                fontWeight = FontWeight.Bold,
+                color = NeWorkColors.TextPrimary,
+                fontWeight = NeWorkFontWeights.Bold,
             )
         }
     }
@@ -187,13 +184,13 @@ private fun AvatarFallback(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .background(Color(0xFFD8CBE7)),
+            .background(NeWorkColors.AvatarBackground),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = user.name.firstOrNull()?.uppercase() ?: "?",
-            color = UserAccent,
-            fontWeight = FontWeight.Bold,
+            color = NeWorkColors.AccentPrimary,
+            fontWeight = NeWorkFontWeights.Bold,
         )
     }
 }

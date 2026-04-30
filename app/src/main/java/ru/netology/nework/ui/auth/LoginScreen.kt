@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,9 @@ import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
+import ru.netology.nework.R
 import ru.netology.nework.navigation.Destination
+import ru.netology.nework.ui.theme.NeWorkColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,14 +65,14 @@ fun LoginScreen(
                 AuthEvent.WrongCredentials -> {
                     Toast.makeText(
                         context,
-                        "Неправильный логин или пароль",
+                        context.getString(R.string.toast_wrong_credentials),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
                 AuthEvent.UnknownError -> {
                     Toast.makeText(
                         context,
-                        "Не удалось выполнить вход",
+                        context.getString(R.string.toast_login_failed),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -85,12 +88,12 @@ fun LoginScreen(
             containerColor = AuthUi.ScreenBackground,
             topBar = {
                 TopAppBar(
-                    title = { Text("Логин") },
+                    title = { Text(stringResource(R.string.screen_login)) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Назад",
+                                contentDescription = stringResource(R.string.cd_back),
                             )
                         }
                     },
@@ -115,14 +118,14 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = state.loginError != null,
-                    label = { Text("Логин") },
+                    label = { Text(stringResource(R.string.label_login)) },
                     colors = authTextFieldColors(),
                     shape = AuthUi.FieldShape,
                 )
 
                 state.loginError?.let { error ->
                     Spacer(modifier = Modifier.height(4.dp))
-                    AuthErrorText(error)
+                    AuthErrorText(stringResource(error))
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -133,7 +136,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     isError = state.passwordError != null,
-                    label = { Text("Пароль") },
+                    label = { Text(stringResource(R.string.label_password)) },
                     visualTransformation = if (passwordVisible) {
                         androidx.compose.ui.text.input.VisualTransformation.None
                     } else {
@@ -149,9 +152,9 @@ fun LoginScreen(
                                     Icons.Default.VisibilityOff
                                 },
                                 contentDescription = if (passwordVisible) {
-                                    "Скрыть пароль"
+                                    stringResource(R.string.cd_hide_password)
                                 } else {
-                                    "Показать пароль"
+                                    stringResource(R.string.cd_show_password)
                                 },
                             )
                         }
@@ -162,7 +165,7 @@ fun LoginScreen(
 
                 state.passwordError?.let { error ->
                     Spacer(modifier = Modifier.height(4.dp))
-                    AuthErrorText(error)
+                    AuthErrorText(stringResource(error))
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -175,12 +178,18 @@ fun LoginScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = AuthUi.PrimaryButton,
                         contentColor = AuthUi.PrimaryButtonText,
-                        disabledContainerColor = Color(0xFFD9D9D9),
-                        disabledContentColor = Color(0xFF8C8C8C),
+                        disabledContainerColor = NeWorkColors.DisabledContainer,
+                        disabledContentColor = NeWorkColors.DisabledContent,
                     ),
                     contentPadding = PaddingValues(vertical = 12.dp),
                 ) {
-                    Text(if (state.loading) "Входим..." else "Войти")
+                    Text(
+                        if (state.loading) {
+                            stringResource(R.string.action_logging_in)
+                        } else {
+                            stringResource(R.string.action_sign_in)
+                        }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -190,7 +199,7 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
-                        text = "Нет аккаунта? Зарегистрироваться",
+                        text = stringResource(R.string.login_no_account),
                         color = AuthUi.SecondaryText,
                     )
                 }

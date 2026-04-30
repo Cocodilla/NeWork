@@ -26,8 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import java.util.Locale
+import ru.netology.nework.R
 import ru.netology.nework.model.AttachmentModel
 import ru.netology.nework.model.AttachmentType
 import ru.netology.nework.util.AttachmentValidation
@@ -61,23 +64,23 @@ fun AttachmentPickerSection(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = "Вложение",
+            text = stringResource(R.string.attachment_section_title),
             style = MaterialTheme.typography.titleMedium,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { imageLauncher.launch("image/*") }) {
-                Text("Фото")
+                Text(stringResource(R.string.attachment_photo))
             }
             Button(onClick = { audioLauncher.launch("audio/*") }) {
-                Text("Аудио")
+                Text(stringResource(R.string.attachment_audio))
             }
             Button(onClick = { videoLauncher.launch("video/*") }) {
-                Text("Видео")
+                Text(stringResource(R.string.attachment_video))
             }
             if (attachment != null) {
                 OutlinedButton(onClick = { onAttachmentPicked(null) }) {
-                    Text("Убрать")
+                    Text(stringResource(R.string.attachment_remove))
                 }
             }
         }
@@ -123,14 +126,14 @@ private fun AttachmentPreview(attachment: AttachmentModel) {
         AttachmentType.AUDIO, AttachmentType.VIDEO, null -> {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = attachment.name ?: "Файл")
+                    Text(text = attachment.name ?: stringResource(R.string.attachment_file))
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = when (attachment.type) {
-                            AttachmentType.AUDIO -> "Аудио"
-                            AttachmentType.VIDEO -> "Видео"
-                            AttachmentType.IMAGE -> "Фото"
-                            null -> "Неизвестный тип"
+                            AttachmentType.AUDIO -> stringResource(R.string.attachment_audio)
+                            AttachmentType.VIDEO -> stringResource(R.string.attachment_video)
+                            AttachmentType.IMAGE -> stringResource(R.string.attachment_photo)
+                            null -> stringResource(R.string.attachment_unknown_type)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -145,5 +148,9 @@ private fun AttachmentPreview(attachment: AttachmentModel) {
 private fun formatSize(bytes: Long): String {
     val kb = bytes / 1024.0
     val mb = kb / 1024.0
-    return if (mb >= 1) String.format("%.2f МБ", mb) else String.format("%.0f КБ", kb)
+    return if (mb >= 1) {
+        String.format(Locale.getDefault(), "%.2f МБ", mb)
+    } else {
+        String.format(Locale.getDefault(), "%.0f КБ", kb)
+    }
 }
